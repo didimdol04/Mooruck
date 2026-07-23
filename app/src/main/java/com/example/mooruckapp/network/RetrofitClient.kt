@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    // TODO: 담당1 - 농촌진흥청 API(data.go.kr) 기본 URL로 교체
+    // TODO: 농촌진흥청 API(data.go.kr) 기본 URL로 교체
     private const val BASE_URL = "https://apis.data.go.kr/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
