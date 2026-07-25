@@ -7,11 +7,13 @@ import androidx.room.RoomDatabase
 
 // Entity를 만든 뒤 아래 entities 배열에 추가
 @Database(
-    entities = [], // TODO: 각 담당자가 자기 Entity 추가
+    entities = [GrowthDiary::class], // TODO: 각 담당자가 자기 Entity 추가
     version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun growthDiaryDao(): GrowthDiaryDao
 
     companion object {
         @Volatile
