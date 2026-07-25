@@ -4,14 +4,20 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.mooruckapp.data.local.dao.UserDao
+import com.example.mooruckapp.data.local.entity.GrowthDiary
+import com.example.mooruckapp.data.local.entity.User
+import com.example.mooruckapp.data.local.entity.UserPlant
+import com.example.mooruckapp.data.local.entity.WateringRecord
 
-// Entity를 만든 뒤 아래 entities 배열에 추가
 @Database(
-    entities = [], // TODO: 각 담당자가 자기 Entity 추가
+    entities = [User::class, UserPlant::class, GrowthDiary::class, WateringRecord::class],
     version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile
