@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.mooruckapp.data.local.entity.WateringRecordEntity
 
 // Entity를 만든 뒤 아래 entities 배열에 추가
 @Database(
-    entities = [], // TODO: 각 담당자가 자기 Entity 추가
+    entities = [
+        WateringRecordEntity::class
+               ], // TODO: 각 담당자가 자기 Entity 추가
     version = 1,
     exportSchema = false
 )
