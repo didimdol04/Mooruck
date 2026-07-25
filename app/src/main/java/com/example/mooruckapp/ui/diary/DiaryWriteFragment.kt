@@ -33,6 +33,27 @@ class DiaryWriteFragment : Fragment() {
     // 임시로 식물 ID 고정 (나중에 실제 선택된 식물로 교체)
     private val plantId: Long = 1
 
+    // 수정할 일지 (없으면 새 글 작성)
+    private var editingDiary: GrowthDiary? = null
+
+    // 선택된 사진 경로
+    private var selectedImageUri: String = ""
+
+    // 갤러리에서 사진 선택
+    private val pickImage = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            // 앱이 계속 접근할 수 있도록 권한 유지
+            requireContext().contentResolver.takePersistableUriPermission(
+                uri,
+                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+            selectedImageUri = uri.toString()
+            ivPhoto.setImageURI(uri)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -52,17 +73,47 @@ class DiaryWriteFragment : Fragment() {
         // 처음엔 오늘 날짜 표시
         updateDateText()
 
+        // 수정 모드면 기존 내용 채우기
+        arguments?.getLong("diaryId", -1)?.let { diaryId ->
+            if (diaryId != -1L) {
+                loadDiaryForEdit(diaryId)
+            }
+        }
+
         // 날짜 클릭 → 달력 띄우기
         tvDate.setOnClickListener { showDatePicker() }
 
         // 저장 버튼
         btnSave.setOnClickListener { saveDiary() }
+
+        // 사진 클릭 → 갤러리 열기
+        ivPhoto.setOnClickListener {
+            pickImage.launch("image/*")
+        }
     }
 
     // 선택된 날짜를 화면에 표시
     private fun updateDateText() {
         val format = SimpleDateFormat("yyyy년 M월 d일", Locale.KOREAN)
         tvDate.text = format.format(selectedDate)
+    }
+
+    // 수정할 일지 불러오기
+    private fun loadDiaryForEdit(diaryId: Long) {
+        lifecycleScope.launch {
+            val dao = AppDatabase.getInstance(requireContext()).growthDiaryDao()
+            val diary = dao.getById(diaryId)
+            if (diary != null) {
+                editingDiary = diary
+                selectedDate = diary.diaryDate
+                updateDateText()
+                etContent.setText(diary.content)
+                if (diary.imageUrl.isNotEmpty()) {
+                    selectedImageUri = diary.imageUrl
+                    ivPhoto.setImageURI(android.net.Uri.parse(diary.imageUrl))
+                }
+            }
+        }
     }
 
     // 날짜 선택 달력
@@ -88,26 +139,35 @@ class DiaryWriteFragment : Fragment() {
     private fun saveDiary() {
         val content = etContent.text.toString().trim()
 
-        // 내용 미입력 시 저장 차단
         if (content.isEmpty()) {
             Toast.makeText(requireContext(), "내용을 입력해주세요", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val diary = GrowthDiary(
-            userPlantId = plantId,
-            diaryDate = selectedDate,
-            content = content,
-            imageUrl = ""
-        )
-
         lifecycleScope.launch {
             val dao = AppDatabase.getInstance(requireContext()).growthDiaryDao()
-            dao.insert(diary)
 
-            Toast.makeText(requireContext(), "저장되었습니다", Toast.LENGTH_SHORT).show()
+            val existing = editingDiary
+            if (existing != null) {
+                val updated = existing.copy(
+                    diaryDate = selectedDate,
+                    content = content,
+                    imageUrl = selectedImageUri,
+                    updatedAt = System.currentTimeMillis()
+                )
+                dao.update(updated)
+                Toast.makeText(requireContext(), "수정되었습니다", Toast.LENGTH_SHORT).show()
+            } else {
+                val diary = GrowthDiary(
+                    userPlantId = plantId,
+                    diaryDate = selectedDate,
+                    content = content,
+                    imageUrl = selectedImageUri
+                )
+                dao.insert(diary)
+                Toast.makeText(requireContext(), "저장되었습니다", Toast.LENGTH_SHORT).show()
+            }
 
-            // 이전 화면(목록)으로 돌아가기
             parentFragmentManager.popBackStack()
         }
     }

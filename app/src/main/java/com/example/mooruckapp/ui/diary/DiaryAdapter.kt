@@ -46,7 +46,12 @@ class DiaryAdapter(
 
         holder.tvContent.text = diary.content
 
-        // 사진은 이후 Glide로 연결 예정
+        // 사진 표시 (없으면 회색 배경 유지)
+        if (diary.imageUrl.isNotEmpty()) {
+            holder.ivPhoto.setImageURI(android.net.Uri.parse(diary.imageUrl))
+        } else {
+            holder.ivPhoto.setImageURI(null)
+        }
 
         // 카드를 누르면 전체 내용 팝업
         holder.layoutCard.setOnClickListener { onItemClick(diary) }
