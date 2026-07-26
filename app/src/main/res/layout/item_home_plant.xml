@@ -49,7 +49,7 @@
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:padding="12dp"
-                app:backgroundTint="@color/sub_green"
+                app:backgroundTint="#81D4FA"
                 app:cornerRadius="24dp"
                 app:icon="@drawable/ic_water_drop"
                 app:iconGravity="textStart"
