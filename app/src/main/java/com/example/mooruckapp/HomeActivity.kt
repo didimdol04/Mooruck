@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mooruckapp.databinding.ActivityHomeBinding
+import androidx.core.widget.addTextChangedListener
+import com.google.android.material.snackbar.Snackbar
 
 class HomeActivity : AppCompatActivity() {
 
@@ -22,7 +24,7 @@ class HomeActivity : AppCompatActivity() {
     private fun setupPlantList() {
         binding.recyclerViewPlants.layoutManager = GridLayoutManager(this, 2)
 
-        // DB 연결 전 화면 확인용 임시 데이터
+        // DB 연결 전 화면과 검색 기능 확인용 임시 데이터
         val samplePlants = listOf(
             HomePlantItem(
                 id = 1L,
@@ -47,15 +49,48 @@ class HomeActivity : AppCompatActivity() {
             )
         )
 
-        binding.recyclerViewPlants.adapter = HomePlantAdapter(
+        val plantAdapter = HomePlantAdapter(
             plants = samplePlants,
             onPlantClick = { plant ->
-                // TODO: 식물 상세 Activity가 만들어진 뒤 연결
+                // TODO: 식물 상세 Activity 연결
             },
             onWaterClick = { plant ->
+                val displayName = plant.nickname
+                    ?.takeIf { it.isNotBlank() }
+                    ?: plant.plantName
+
+                Snackbar.make(
+                    binding.root,
+                    "${displayName}의 물주기 날짜를 오늘로 재설정합니다.",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+
                 // TODO: WateringRecord DB 저장 연결
             }
         )
+
+        binding.recyclerViewPlants.adapter = plantAdapter
+
+        binding.editTextSearch.addTextChangedListener { text ->
+            val keyword = text?.toString()?.trim().orEmpty()
+
+            val filteredPlants = if (keyword.isBlank()) {
+                samplePlants
+            } else {
+                samplePlants.filter { plant ->
+                    plant.plantName.contains(
+                        other = keyword,
+                        ignoreCase = true
+                    ) ||
+                            plant.nickname?.contains(
+                                other = keyword,
+                                ignoreCase = true
+                            ) == true
+                }
+            }
+
+            plantAdapter.updatePlants(filteredPlants)
+        }
     }
 
     private fun setupButtons() {
