@@ -132,7 +132,10 @@ class DiaryWriteFragment : Fragment() {
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
+        ).apply {
+            // 오늘 이후 날짜는 선택 불가
+            datePicker.maxDate = System.currentTimeMillis()
+        }.show()
     }
 
     // 일지 저장
