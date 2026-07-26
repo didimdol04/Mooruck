@@ -59,4 +59,8 @@ dependencies {
 
     // 비동기 처리 (코루틴)
     implementation(libs.kotlinx.coroutines.android)
+
+    // Fragment에서 lifecycleScope 사용
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
 }
