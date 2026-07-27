@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
 import com.example.mooruckapp.data.local.entity.UserPlant
+import com.example.mooruckapp.data.local.entity.WateringRecord
 import com.example.mooruckapp.databinding.FragmentPlantRegisterBinding
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -44,6 +45,13 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
     private val userPlantDao by lazy {
         AppDatabase.getInstance(requireContext()).userPlantDao()
+    }
+
+    // 물주기 기록 테이블에 접근할 DAO를 가져온다.
+    private val wateringRecordDao by lazy {
+        AppDatabase
+            .getInstance(requireContext())
+            .wateringRecordDao()
     }
 
     // Fragment 화면 생성 후 ViewBinding과 초기 동작을 설정한다.
@@ -137,7 +145,7 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         )
     }
 
-    // UserPlant를 Room DB에 저장하고 생성된 식물 ID를 확인한다.
+    // 식물과 첫 물주기 기록을 Room DB에 순서대로 저장한다.
     private fun saveUserPlant() {
         val userPlant = createUserPlant()
 
@@ -145,13 +153,24 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
         lifecycleScope.launch {
             try {
-                val plantId = userPlantDao.insert(userPlant)
+                // UserPlant를 저장하고 자동 생성된 식물 ID를 받는다.
+                val userPlantId =
+                    userPlantDao.insert(userPlant)
+
+                // 생성된 식물 ID로 첫 물주기 기록을 저장한다.
+                saveFirstWateringRecord(userPlantId)
 
                 binding.btnRegisterPlant.isEnabled = true
-                onUserPlantSaved(plantId)
+
+                showMessage(
+                    "식물과 첫 물주기 기록이 저장되었어요. 식물 번호: $userPlantId",
+                )
             } catch (exception: Exception) {
                 binding.btnRegisterPlant.isEnabled = true
-                showMessage("식물 등록에 실패했어요.")
+
+                showMessage(
+                    "식물 등록 중 오류가 발생했어요.",
+                )
             }
         }
     }
@@ -159,6 +178,26 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
     // UserPlant 저장 후 첫 물주기 기록 저장 단계로 전달한다.
     private fun onUserPlantSaved(plantId: Long) {
         showMessage("저장된 식물 번호: $plantId")
+    }
+
+    // 등록한 식물의 첫 물주기 기록 객체를 생성한다.
+    private fun createFirstWateringRecord(
+        userPlantId: Long,
+    ): WateringRecord {
+        return WateringRecord(
+            userPlantId = userPlantId,
+            wateredDate = requireNotNull(selectedLastWateredDate),
+        )
+    }
+
+    // 등록한 식물의 첫 물주기 기록을 Room DB에 저장한다.
+    private suspend fun saveFirstWateringRecord(
+        userPlantId: Long,
+    ) {
+        val wateringRecord =
+            createFirstWateringRecord(userPlantId)
+
+        wateringRecordDao.insert(wateringRecord)
     }
 
     // 검색어를 검사하고 추후 API 검색 결과가 표시될 영역을 연다.
