@@ -1,5 +1,6 @@
 package com.example.mooruckapp.network
 
+import com.example.mooruckapp.network.api.PlantApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -7,8 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    // TODO: 농촌진흥청 API(data.go.kr) 기본 URL로 교체
-    private const val BASE_URL = "https://apis.data.go.kr/"
+    private const val BASE_URL = "http://api.nongsaro.go.kr/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -18,11 +18,15 @@ object RetrofitClient {
         .addInterceptor(loggingInterceptor)
         .build()
 
-    val instance: Retrofit by lazy {
+    private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+    }
+
+    val plantApi: PlantApiService by lazy {
+        retrofit.create(PlantApiService::class.java)
     }
 }
