@@ -265,22 +265,13 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         growthDiaryDao.insert(growthDiary)
     }
 
-    // 검색어를 검사하고 추후 API 검색 결과가 표시될 영역을 연다.
+    // 식물 검색 BottomSheet를 연다.
     private fun searchPlant() {
-        val keyword = binding.etSearchPlantName.text.toString().trim()
-
-        if (keyword.isBlank()) {
-            binding.etSearchPlantName.error =
-                "검색할 식물 이름을 입력해 주세요."
-
-            binding.etSearchPlantName.requestFocus()
-            return
-        }
-
-        binding.etSearchPlantName.error = null
-        binding.rvPlantSearchResult.visibility = View.VISIBLE
-
-        showMessage("'$keyword' 검색 기능은 API 연결 단계에서 구현할 예정이에요.")
+        PlantSearchBottomSheet()
+            .show(
+                parentFragmentManager,
+                PlantSearchBottomSheet::class.java.simpleName
+            )
     }
 
     // API 검색 결과를 이용하는 검색 등록 모드로 화면을 변경한다.
