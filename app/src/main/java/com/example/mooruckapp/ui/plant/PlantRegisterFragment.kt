@@ -223,11 +223,6 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         }
     }
 
-    // UserPlant 저장 후 첫 물주기 기록 저장 단계로 전달한다.
-    private fun onUserPlantSaved(plantId: Long) {
-        showMessage("저장된 식물 번호: $plantId")
-    }
-
     // 등록한 식물의 첫 물주기 기록 객체를 생성한다.
     private fun createFirstWateringRecord(
         userPlantId: Long,
