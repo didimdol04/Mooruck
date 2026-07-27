@@ -26,26 +26,26 @@ data class DetailBody(
 data class PlantDetail(
 
     @SerializedName("distbNm")
-    val plantName: String,
+    val plantName: String = "",
 
     @SerializedName("lighttdemanddoCodeNm")
-    val light: String,
+    val light: String = "",
 
     @SerializedName("hdCodeNm")
-    val humidity: String,
+    val humidity: String = "",
 
     @SerializedName("grwhTpCodeNm")
-    val temperature: String,
+    val temperature: String = "",
 
     @SerializedName("watercycleSprngCode")
-    val springWaterCode: String,
+    val springWaterCode: String = "",
 
     @SerializedName("watercycleSummerCode")
-    val summerWaterCode: String,
+    val summerWaterCode: String = "",
 
     @SerializedName("watercycleAutumnCode")
-    val autumnWaterCode: String,
+    val autumnWaterCode: String = "",
 
     @SerializedName("watercycleWinterCode")
-    val winterWaterCode: String
+    val winterWaterCode: String = ""
 )
