@@ -7,8 +7,12 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.mooruckapp.R
+import com.example.mooruckapp.data.local.AppDatabase
+import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.databinding.FragmentPlantRegisterBinding
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -37,6 +41,10 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
                 binding.ivPlantProfile.setImageURI(imageUri)
             }
         }
+
+    private val userPlantDao by lazy {
+        AppDatabase.getInstance(requireContext()).userPlantDao()
+    }
 
     // Fragment 화면 생성 후 ViewBinding과 초기 동작을 설정한다.
     override fun onViewCreated(
@@ -90,8 +98,67 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
                 return@setOnClickListener
             }
 
-            showMessage("입력값 검증을 통과했어요.")
+            saveUserPlant()
         }
+    }
+
+    // 화면에 입력된 값으로 저장할 UserPlant 객체를 생성한다.
+    private fun createUserPlant(): UserPlant {
+        val nickname = binding.etNickname.text
+            .toString()
+            .trim()
+            .ifBlank { null }
+
+        val light = binding.etLight.text
+            .toString()
+            .trim()
+            .ifBlank { "정보 없음" }
+
+        val humidity = binding.etHumidity.text
+            .toString()
+            .trim()
+            .ifBlank { "정보 없음" }
+
+        val temperature = binding.etTemperature.text
+            .toString()
+            .trim()
+            .ifBlank { "정보 없음" }
+
+        return UserPlant(
+            plantName = binding.etPlantName.text.toString().trim(),
+            nickname = nickname,
+            profileImageUri = selectedImageUri?.toString(),
+            light = light,
+            humidity = humidity,
+            temperature = temperature,
+            wateringIntervalDays =
+                binding.etWateringInterval.text.toString().trim().toInt(),
+            plantedDate = requireNotNull(selectedPlantedDate),
+        )
+    }
+
+    // UserPlant를 Room DB에 저장하고 생성된 식물 ID를 확인한다.
+    private fun saveUserPlant() {
+        val userPlant = createUserPlant()
+
+        binding.btnRegisterPlant.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val plantId = userPlantDao.insert(userPlant)
+
+                binding.btnRegisterPlant.isEnabled = true
+                onUserPlantSaved(plantId)
+            } catch (exception: Exception) {
+                binding.btnRegisterPlant.isEnabled = true
+                showMessage("식물 등록에 실패했어요.")
+            }
+        }
+    }
+
+    // UserPlant 저장 후 첫 물주기 기록 저장 단계로 전달한다.
+    private fun onUserPlantSaved(plantId: Long) {
+        showMessage("저장된 식물 번호: $plantId")
     }
 
     // 검색어를 검사하고 추후 API 검색 결과가 표시될 영역을 연다.
