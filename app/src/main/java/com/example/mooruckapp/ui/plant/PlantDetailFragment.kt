@@ -8,12 +8,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
 import com.example.mooruckapp.data.local.dao.UserPlantDao
 import com.example.mooruckapp.data.local.dao.WateringRecordDao
@@ -104,6 +106,116 @@ class PlantDetailFragment : Fragment() {
         // 프로필 이미지를 누르면 이미지 선택창을 연다.
         binding.buttonEditImage.setOnClickListener {
             openImagePicker()
+        }
+
+        // 더보기 버튼을 누르면 메뉴를 표시한다.
+        binding.buttonMore.setOnClickListener {
+            showMoreMenu()
+        }
+    }
+
+    // 더보기 버튼 아래에 팝업 메뉴를 표시한다.
+    private fun showMoreMenu() {
+
+        // buttonMore를 기준으로 PopupMenu를 만든다.
+        val popupMenu = PopupMenu(
+            requireContext(),
+            binding.buttonMore,
+        )
+
+        // 식물 상세 메뉴 XML을 PopupMenu에 연결한다.
+        popupMenu.menuInflater.inflate(
+            R.menu.menu_plant_detail,
+            popupMenu.menu,
+        )
+
+        // 사용자가 선택한 메뉴를 처리한다.
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+
+            when (menuItem.itemId) {
+
+                // 식물 삭제 메뉴를 누르면 확인 다이얼로그를 표시한다.
+                R.id.menuDeletePlant -> {
+                    showDeleteConfirmDialog()
+                    true
+                }
+
+                // 처리하지 않은 메뉴이다.
+                else -> false
+            }
+        }
+
+        // PopupMenu를 화면에 표시한다.
+        popupMenu.show()
+    }
+
+    // 식물을 삭제하기 전에 사용자에게 한 번 더 확인한다.
+    private fun showDeleteConfirmDialog() {
+
+        // 현재 식물 정보가 없으면 삭제할 수 없다.
+        val plant = currentPlant
+
+        if (plant == null) {
+
+            Toast.makeText(
+                requireContext(),
+                "식물 정보를 불러오는 중입니다.",
+                Toast.LENGTH_SHORT,
+            ).show()
+
+            return
+        }
+
+        // 별명이 있으면 별명을, 없으면 식물 이름을 표시한다.
+        val displayName =
+            plant.nickname?.takeIf { it.isNotBlank() }
+                ?: plant.plantName
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("식물 삭제")
+            .setMessage(
+                "'$displayName'을(를) 삭제할까요?\n" +
+                        "물주기 기록과 성장 일지도 함께 삭제됩니다.",
+            )
+            .setNegativeButton(
+                "취소",
+                null,
+            )
+            .setPositiveButton(
+                "삭제",
+            ) { _, _ ->
+
+                // 사용자가 삭제를 확인하면 Room에서 삭제한다.
+                deletePlant(plant)
+            }
+            .show()
+    }
+
+    // 식물과 연결된 데이터를 Room에서 삭제한다.
+    private fun deletePlant(
+        plant: UserPlant,
+    ) {
+
+        // DAO의 suspend 삭제 함수를 실행하기 위해 코루틴을 시작한다.
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            // UserPlant를 삭제한다.
+            userPlantDao.delete(plant)
+
+            Toast.makeText(
+                requireContext(),
+                "식물이 삭제되었습니다.",
+                Toast.LENGTH_SHORT,
+            ).show()
+
+
+            // TODO: PlantListFragment 구현 후 popBackStack()으로 변경한다.
+            parentFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragmentContainer,
+                    PlantRegisterFragment(),
+                    )
+                .commit()
         }
     }
 
