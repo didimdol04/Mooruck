@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- 상세 내용이 길어지면 화면을 스크롤할 수 있게 한다. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/white"
+    android:fillViewport="true">
+
+    <!-- 상세 화면의 모든 항목을 세로로 배치한다. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- 상단 영역: 뒤로가기, 제목, 더보기 메뉴 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 이전 화면으로 돌아간다. -->
+            <ImageButton
+                android:id="@+id/buttonBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="뒤로가기"
+                android:src="@drawable/ic_arrow_back" />
+
+            <!-- 상세 화면 제목이다. -->
+            <TextView
+                android:id="@+id/textDetailTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="식물 상세"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <!-- 삭제 메뉴를 표시하는 점 3개 버튼이다. -->
+            <ImageButton
+                android:id="@+id/buttonMore"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="더보기"
+                android:padding="8dp"
+                android:src="@drawable/ic_more_vert" />
+
+        </LinearLayout>
+
+        <!-- 식물 프로필 사진이다. -->
+        <ImageView
+            android:id="@+id/imagePlantProfile"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="24dp"
+            android:contentDescription="식물 프로필 사진"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_gallery" />
+
+        <!-- 프로필 사진을 수정하는 버튼이다. -->
+        <ImageButton
+            android:id="@+id/buttonEditImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="식물 사진 수정"
+            android:src="@drawable/ic_edit" />
+
+        <!-- 별명 표시 영역이다. -->
+        <LinearLayout
+            android:id="@+id/layoutNicknameDisplay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 식물 별명이다. -->
+            <TextView
+                android:id="@+id/textPlantNickname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="식물 별명"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <!-- 별명을 수정 모드로 전환하는 버튼이다. -->
+            <ImageButton
+                android:id="@+id/buttonEditNickname"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="4dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="별명 수정"
+                android:src="@drawable/ic_edit" />
+
+        </LinearLayout>
+
+        <!-- 별명을 수정할 때만 표시되는 영역이다. -->
+        <LinearLayout
+            android:id="@+id/layoutNicknameEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <!-- 새로운 별명을 입력한다. -->
+            <EditText
+                android:id="@+id/editPlantNickname"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="식물 별명을 입력하세요"
+                android:inputType="text"
+                android:maxLength="20" />
+
+            <!-- 입력한 별명을 저장한다. -->
+            <Button
+                android:id="@+id/buttonSaveNickname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="저장" />
+
+        </LinearLayout>
+
+        <!-- 식물의 실제 이름이다. -->
+        <TextView
+            android:id="@+id/textPlantName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="6dp"
+            android:text="몬스테라"
+            android:textColor="#757575"
+            android:textSize="14sp" />
+
+        <!-- 식물과 함께한 날짜를 표시한다. -->
+        <TextView
+            android:id="@+id/textTogetherDays"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="6dp"
+            android:text="함께한 지 1일째"
+            android:textColor="#2E6B4A"
+            android:textSize="13sp" />
+
+        <!-- 광도, 습도, 온도, 물주기 정보를 묶은 카드이다. -->
+        <LinearLayout
+            android:id="@+id/layoutPlantInfoCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 광도 정보이다. -->
+            <TextView
+                android:id="@+id/textLight"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="광도: -" />
+
+            <!-- 습도 정보이다. -->
+            <TextView
+                android:id="@+id/textHumidity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="습도: -" />
+
+            <!-- 적정 온도 정보이다. -->
+            <TextView
+                android:id="@+id/textTemperature"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="적정 온도: -" />
+
+            <!-- 물주기 주기 정보이다. -->
+            <TextView
+                android:id="@+id/textWateringInterval"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="물주기: -" />
+
+        </LinearLayout>
+
+        <!-- 식물을 심은 날짜이다. -->
+        <TextView
+            android:id="@+id/textPlantedDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="심은 날짜: -" />
+
+        <!-- 가장 최근에 물을 준 날짜이다. -->
+        <TextView
+            android:id="@+id/textLastWateredDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="마지막 물 준 날짜: -" />
+
+        <!-- 식물 정보를 불러오지 못했을 때 표시한다. -->
+        <TextView
+            android:id="@+id/textLoadError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:text="식물 정보를 불러올 수 없어요."
+            android:textColor="#757575"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+        <!-- 성장 일지 화면으로 이동하는 버튼 -->
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/buttonGrowthDiary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="24dp"
+            android:text="성장 일지 바로가기"
+            android:textColor="#FFFFFF"
+            app:backgroundTint="#2E6B4A"
+            app:icon="@android:drawable/ic_menu_agenda"
+            app:iconTint="#FFFFFF" />
+
+    </LinearLayout>
+
+</ScrollView>
