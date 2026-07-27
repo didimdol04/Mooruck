@@ -1,6 +1,7 @@
 package com.example.mooruckapp.ui.plant
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -36,12 +37,36 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
     private var registerMode = RegisterMode.SEARCH
 
+    // 갤러리에서 이미지를 선택한다.
     private val imagePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { imageUri ->
-            if (imageUri != null && _binding != null) {
-                selectedImageUri = imageUri
-                binding.ivPlantProfile.setImageURI(imageUri)
+        registerForActivityResult(
+            ActivityResultContracts.OpenDocument(),
+        ) { imageUri ->
+
+            // 이미지가 선택되지 않았거나 화면이 종료된 경우 처리하지 않는다.
+            if (imageUri == null || _binding == null) {
+                return@registerForActivityResult
             }
+
+            try {
+
+                // 앱을 종료한 뒤에도 해당 이미지 URI를 읽을 수 있도록 권한을 유지한다.
+                requireContext().contentResolver.takePersistableUriPermission(
+                    imageUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+
+            } catch (exception: SecurityException) {
+
+                // 일부 기기나 이미지 제공자는 권한 유지 기능을 지원하지 않을 수 있다.
+                exception.printStackTrace()
+            }
+
+            // 선택한 이미지 URI를 저장한다.
+            selectedImageUri = imageUri
+
+            // 등록 화면에 선택한 이미지를 미리 보여준다.
+            binding.ivPlantProfile.setImageURI(imageUri)
         }
 
     private val userPlantDao by lazy {
@@ -83,7 +108,10 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
     // 식물 등록 화면에서 사용하는 클릭 이벤트를 설정한다.
     private fun setupClickListeners() {
         binding.btnSelectImage.setOnClickListener {
-            imagePickerLauncher.launch("image/*")
+            // 이미지 파일만 선택할 수 있도록 문서 선택기를 연다.
+            imagePickerLauncher.launch(
+                arrayOf("image/*"),
+            )
         }
 
         binding.btnSearchPlant.setOnClickListener {
