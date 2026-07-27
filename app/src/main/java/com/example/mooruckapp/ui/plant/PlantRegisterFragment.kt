@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
+import com.example.mooruckapp.data.local.GrowthDiary
 import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.data.local.entity.WateringRecord
 import com.example.mooruckapp.databinding.FragmentPlantRegisterBinding
@@ -52,6 +53,13 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         AppDatabase
             .getInstance(requireContext())
             .wateringRecordDao()
+    }
+
+    // 성장 일지 테이블에 접근할 DAO를 가져온다.
+    private val growthDiaryDao by lazy {
+        AppDatabase
+            .getInstance(requireContext())
+            .growthDiaryDao()
     }
 
     // Fragment 화면 생성 후 ViewBinding과 초기 동작을 설정한다.
@@ -145,7 +153,7 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         )
     }
 
-    // 식물과 첫 물주기 기록을 Room DB에 순서대로 저장한다.
+    // 식물과 첫 물주기 기록, 첫 성장 일지를 Room DB에 순서대로 저장한다.
     private fun saveUserPlant() {
         val userPlant = createUserPlant()
 
@@ -153,18 +161,22 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
         lifecycleScope.launch {
             try {
-                // UserPlant를 저장하고 자동 생성된 식물 ID를 받는다.
+                // 식물을 저장하고 자동 생성된 식물 ID를 받는다.
                 val userPlantId =
                     userPlantDao.insert(userPlant)
 
                 // 생성된 식물 ID로 첫 물주기 기록을 저장한다.
                 saveFirstWateringRecord(userPlantId)
 
+                // 생성된 식물 ID로 첫 성장 일지를 저장한다.
+                saveFirstGrowthDiary(userPlantId)
+
                 binding.btnRegisterPlant.isEnabled = true
 
                 showMessage(
-                    "식물과 첫 물주기 기록이 저장되었어요. 식물 번호: $userPlantId",
+                    "식물 등록이 완료되었어요. 식물 번호: $userPlantId",
                 )
+                // TODO: 홈 화면 구현 후 HomeFragment로 이동
             } catch (exception: Exception) {
                 binding.btnRegisterPlant.isEnabled = true
 
@@ -198,6 +210,28 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
             createFirstWateringRecord(userPlantId)
 
         wateringRecordDao.insert(wateringRecord)
+    }
+
+    // 등록한 식물의 첫 성장 일지 객체를 생성한다.
+    private fun createFirstGrowthDiary(
+        userPlantId: Long,
+    ): GrowthDiary {
+        return GrowthDiary(
+            userPlantId = userPlantId,
+            diaryDate = requireNotNull(selectedPlantedDate),
+            content = "식물과 함께한 첫날이에요.",
+            imageUrl = selectedImageUri?.toString().orEmpty(),
+        )
+    }
+
+    // 등록한 식물의 첫 성장 일지를 Room DB에 저장한다.
+    private suspend fun saveFirstGrowthDiary(
+        userPlantId: Long,
+    ) {
+        val growthDiary =
+            createFirstGrowthDiary(userPlantId)
+
+        growthDiaryDao.insert(growthDiary)
     }
 
     // 검색어를 검사하고 추후 API 검색 결과가 표시될 영역을 연다.
