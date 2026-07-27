@@ -1,10 +1,15 @@
 package com.example.mooruckapp.ui.plant
 
+import android.app.AlertDialog
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -29,6 +34,9 @@ class PlantDetailFragment : Fragment() {
 
     // 전달받은 식물 ID
     private var plantId: Long = INVALID_PLANT_ID
+
+    // 현재 화면에 표시 중인 식물 정보를 보관한다.
+    private var currentPlant: UserPlant? = null
 
     // Room 데이터베이스
     private val database by lazy {
@@ -87,6 +95,16 @@ class PlantDetailFragment : Fragment() {
 
         // 마지막으로 물 준 날짜를 조회한다.
         loadLastWateredDate()
+
+        // 별명을 누르면 별명 수정창을 연다.
+        binding.buttonEditNickname.setOnClickListener {
+            showNicknameEditDialog()
+        }
+
+        // 프로필 이미지를 누르면 이미지 선택창을 연다.
+        binding.buttonEditImage.setOnClickListener {
+            openImagePicker()
+        }
     }
 
     // 전달받은 식물 ID로 식물 정보를 실시간 조회한다.
@@ -184,6 +202,9 @@ class PlantDetailFragment : Fragment() {
         plant: UserPlant,
     ) {
 
+        // 수정 기능에서 사용할 수 있도록 현재 식물을 보관한다.
+        currentPlant = plant
+
         // 별명이 없으면 기본 문구를 표시한다.
         binding.textPlantNickname.text =
             plant.nickname?.takeIf { it.isNotBlank() } ?: "별명 없음"
@@ -222,6 +243,196 @@ class PlantDetailFragment : Fragment() {
 
         // 식물 프로필 이미지를 표시한다.
         bindPlantImage(plant.profileImageUri)
+    }
+
+    // 갤러리에서 새로운 프로필 이미지를 선택한다.
+    private val imagePickerLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.OpenDocument(),
+        ) { imageUri ->
+
+            // 사용자가 이미지를 선택하지 않으면 종료한다.
+            if (imageUri == null) {
+                return@registerForActivityResult
+            }
+
+            // 현재 식물 정보가 아직 조회되지 않았다면 종료한다.
+            val plant = currentPlant
+                ?: return@registerForActivityResult
+
+            try {
+
+                // 앱을 다시 실행해도 이미지에 접근할 수 있도록 권한을 유지한다.
+                requireContext().contentResolver.takePersistableUriPermission(
+                    imageUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+
+            } catch (exception: SecurityException) {
+
+                // 일부 이미지 제공자는 영구 권한을 지원하지 않을 수 있다.
+                exception.printStackTrace()
+            }
+
+            // 선택한 이미지 URI를 Room에 저장한다.
+            updatePlantProfileImage(
+                plant = plant,
+                imageUri = imageUri,
+            )
+        }
+
+    // 별명을 입력할 수 있는 수정 다이얼로그를 표시한다.
+    private fun showNicknameEditDialog() {
+
+        // 식물 정보가 아직 조회되지 않았다면 수정하지 않는다.
+        val plant = currentPlant
+
+        if (plant == null) {
+            Toast.makeText(
+                requireContext(),
+                "식물 정보를 불러오는 중입니다.",
+                Toast.LENGTH_SHORT,
+            ).show()
+
+            return
+        }
+
+        // 별명을 입력받을 EditText를 생성한다.
+        val editText = EditText(requireContext()).apply {
+
+            // 기존 별명을 입력창에 표시한다.
+            setText(plant.nickname.orEmpty())
+
+            // 커서를 문자열 마지막으로 이동한다.
+            setSelection(text.length)
+
+            // 입력창에 안내 문구를 표시한다.
+            hint = "새 별명을 입력해주세요"
+
+            // 다이얼로그 안에서 여백을 준다.
+            setPadding(
+                48,
+                24,
+                48,
+                24,
+            )
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("별명 수정")
+            .setView(editText)
+            .setNegativeButton("취소", null)
+            .setPositiveButton("저장") { _, _ ->
+
+                // 사용자가 입력한 별명의 앞뒤 공백을 제거한다.
+                val newNickname =
+                    editText.text.toString().trim()
+
+                // 별명 길이 등을 검사한 뒤 Room을 수정한다.
+                updatePlantNickname(
+                    plant = plant,
+                    newNickname = newNickname,
+                )
+            }
+            .show()
+    }
+
+    // 식물의 별명만 변경해 Room에 저장한다.
+    private fun updatePlantNickname(
+        plant: UserPlant,
+        newNickname: String,
+    ) {
+
+        // 기존 별명과 같으면 DB를 수정하지 않는다.
+        if (newNickname == plant.nickname.orEmpty()) {
+            return
+        }
+
+        // 너무 긴 별명은 저장하지 않는다.
+        if (newNickname.length > MAX_NICKNAME_LENGTH) {
+
+            Toast.makeText(
+                requireContext(),
+                "별명은 ${MAX_NICKNAME_LENGTH}자 이하로 입력해주세요.",
+                Toast.LENGTH_SHORT,
+            ).show()
+
+            return
+        }
+
+        // suspend update 함수를 호출하기 위해 코루틴을 실행한다.
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            // 기존 식물 객체에서 별명과 수정 시각만 변경한다.
+            val updatedPlant = plant.copy(
+                nickname = newNickname.ifBlank { null },
+                updatedAt = System.currentTimeMillis(),
+            )
+
+            // 변경한 식물 정보를 Room에 저장한다.
+            userPlantDao.update(updatedPlant)
+
+            Toast.makeText(
+                requireContext(),
+                "별명이 수정되었습니다.",
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
+    // 이미지 파일만 선택할 수 있도록 문서 선택기를 연다.
+    private fun openImagePicker() {
+
+        // 식물 정보가 조회된 뒤에만 수정할 수 있다.
+        if (currentPlant == null) {
+
+            Toast.makeText(
+                requireContext(),
+                "식물 정보를 불러오는 중입니다.",
+                Toast.LENGTH_SHORT,
+            ).show()
+
+            return
+        }
+
+        imagePickerLauncher.launch(
+            arrayOf("image/*"),
+        )
+    }
+
+    // 식물의 프로필 이미지 URI만 변경해 Room에 저장한다.
+    private fun updatePlantProfileImage(
+        plant: UserPlant,
+        imageUri: Uri,
+    ) {
+
+        // Uri 객체를 Room에 저장할 문자열로 변환한다.
+        val newImageUri =
+            imageUri.toString()
+
+        // 기존 이미지와 같으면 DB를 수정하지 않는다.
+        if (newImageUri == plant.profileImageUri) {
+            return
+        }
+
+        // suspend update 함수를 호출하기 위해 코루틴을 실행한다.
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            // 기존 식물 객체에서 이미지와 수정 시각만 변경한다.
+            val updatedPlant = plant.copy(
+                profileImageUri = newImageUri,
+                updatedAt = System.currentTimeMillis(),
+            )
+
+            // 변경한 식물 정보를 Room에 저장한다.
+            userPlantDao.update(updatedPlant)
+
+            Toast.makeText(
+                requireContext(),
+                "프로필 이미지가 수정되었습니다.",
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
     }
 
     // 밀리초 날짜를 yyyy.MM.dd 형태로 변환한다.
@@ -299,6 +510,9 @@ class PlantDetailFragment : Fragment() {
 
         // 식물 ID가 전달되지 않았음을 나타내는 값
         private const val INVALID_PLANT_ID = -1L
+
+        // 입력 가능한 최대 별명 길이
+        private const val MAX_NICKNAME_LENGTH = 20
 
         // 식물 ID를 담아 상세 Fragment를 생성한다.
         fun newInstance(
