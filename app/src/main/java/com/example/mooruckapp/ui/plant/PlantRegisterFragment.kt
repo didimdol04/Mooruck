@@ -26,6 +26,9 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
     // 사용자가 선택한 심은 날짜를 밀리초로 저장
     private var selectedPlantedDate: Long? = null
 
+    // 사용자가 선택한 마지막 물 준 날짜를 밀리초로 저장
+    private var selectedLastWateredDate: Long? = null
+
     // 갤러리를 열고 사용자가 선택한 이미지 결과를 받아오는 객체
     private val imagePickerLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { imageUri ->
@@ -78,6 +81,12 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
         // 마지막 물 준 날짜 영역 클릭
         binding.tvLastWateredDate.setOnClickListener {
+            showLastWateredDatePicker()
+        }
+
+        // 마지막 물 준 날짜를 모르는 경우 처리
+        binding.cbUnknownLastWateredDate.setOnCheckedChangeListener { _, isChecked ->
+            handleUnknownLastWateredDate(isChecked)
         }
 
         // 식물 등록 버튼 클릭
@@ -126,6 +135,92 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
         // 달력 표시
         datePickerDialog.show()
+    }
+
+    // 마지막 물 준 날짜를 선택하는 달력을 표시
+    private fun showLastWateredDatePicker() {
+
+        // 날짜를 모른다고 체크한 경우 달력을 열지 않음
+        if (binding.cbUnknownLastWateredDate.isChecked) {
+            return
+        }
+
+        // 선택한 날짜가 없으면 오늘 날짜를 기준으로 달력을 엶
+        val calendar = Calendar.getInstance().apply {
+            selectedLastWateredDate?.let { timeInMillis = it }
+        }
+
+        // 날짜 선택 다이얼로그 생성
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+
+                // 선택한 날짜를 저장할 Calendar 객체 생성
+                val selectedCalendar = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, year)
+                    set(Calendar.MONTH, month)
+                    set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+
+                // 선택한 날짜를 밀리초로 저장
+                selectedLastWateredDate = selectedCalendar.timeInMillis
+
+                // 선택한 날짜를 화면에 표시
+                binding.tvLastWateredDate.text =
+                    formatDate(selectedCalendar.timeInMillis)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH),
+        )
+
+        // 미래 날짜 선택 방지
+        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
+
+        // 달력 표시
+        datePickerDialog.show()
+    }
+
+    // 마지막 물 준 날짜를 모르는 경우 화면과 날짜 값을 처리
+    private fun handleUnknownLastWateredDate(isChecked: Boolean) {
+
+        if (isChecked) {
+
+            // 오늘 날짜를 자정 기준으로 생성
+            val todayCalendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            // 마지막 물 준 날짜를 오늘로 저장
+            selectedLastWateredDate = todayCalendar.timeInMillis
+
+            // 화면에 오늘 날짜를 표시
+            binding.tvLastWateredDate.text =
+                formatDate(todayCalendar.timeInMillis)
+
+            // 날짜 선택 영역 비활성화
+            binding.tvLastWateredDate.isEnabled = false
+            binding.tvLastWateredDate.alpha = 0.5f
+
+        } else {
+
+            // 체크 해제 시 선택한 날짜 초기화
+            selectedLastWateredDate = null
+
+            // 날짜 안내 문구로 변경
+            binding.tvLastWateredDate.text = "날짜를 선택해 주세요"
+
+            // 날짜 선택 영역 활성화
+            binding.tvLastWateredDate.isEnabled = true
+            binding.tvLastWateredDate.alpha = 1.0f
+        }
     }
 
     // 밀리초 날짜를 화면에 표시할 문자열로 변환
