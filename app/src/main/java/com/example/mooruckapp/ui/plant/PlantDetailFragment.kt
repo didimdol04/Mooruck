@@ -98,6 +98,11 @@ class PlantDetailFragment : Fragment() {
         // 마지막으로 물 준 날짜를 조회한다.
         loadLastWateredDate()
 
+        // 뒤로가기 버튼을 누르면 이전 화면으로 돌아간다.
+        binding.buttonBack.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
         // 별명을 누르면 별명 수정창을 연다.
         binding.buttonEditNickname.setOnClickListener {
             showNicknameEditDialog()

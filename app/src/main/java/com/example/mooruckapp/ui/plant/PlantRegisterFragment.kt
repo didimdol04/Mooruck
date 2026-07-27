@@ -96,7 +96,15 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
         _binding = FragmentPlantRegisterBinding.bind(view)
 
+        // 뒤로가기 버튼을 누르면 이전 화면으로 돌아간다.
+        binding.buttonBack.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
+        // 화면의 초기 상태를 설정한다.
         setupInitialState()
+
+        // 버튼 및 입력창의 클릭 이벤트를 연결한다.
         setupClickListeners()
     }
 
