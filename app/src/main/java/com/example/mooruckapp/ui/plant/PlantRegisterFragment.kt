@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.example.mooruckapp.R
@@ -12,116 +13,202 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+// 식물 등록 방식을 검색 등록과 직접 등록으로 구분한다.
+private enum class RegisterMode {
+    SEARCH,
+    MANUAL,
+}
+
 class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
-    // XML의 View에 접근하기 위한 Binding 객체
     private var _binding: FragmentPlantRegisterBinding? = null
-
-    // 화면이 존재하는 동안 Binding을 편하게 사용하기 위한 프로퍼티
     private val binding get() = _binding!!
 
-    // 사용자가 선택한 이미지의 위치를 저장하는 변수
     private var selectedImageUri: Uri? = null
-
-    // 사용자가 선택한 심은 날짜를 밀리초로 저장
     private var selectedPlantedDate: Long? = null
-
-    // 사용자가 선택한 마지막 물 준 날짜를 밀리초로 저장
     private var selectedLastWateredDate: Long? = null
 
-    // 갤러리를 열고 사용자가 선택한 이미지 결과를 받아오는 객체
+    private var registerMode = RegisterMode.SEARCH
+
     private val imagePickerLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { imageUri ->
-
-            // 이미지를 선택하지 않고 갤러리를 닫으면 imageUri가 null이 됨
-            if (imageUri != null) {
-
-                // 선택한 이미지의 위치를 변수에 저장
+            if (imageUri != null && _binding != null) {
                 selectedImageUri = imageUri
-
-                // 선택한 이미지를 프로필 ImageView에 표시
                 binding.ivPlantProfile.setImageURI(imageUri)
             }
         }
 
-    // Fragment의 XML 화면이 생성된 후 호출되는 함수
+    // Fragment 화면 생성 후 ViewBinding과 초기 동작을 설정한다.
     override fun onViewCreated(
         view: View,
         savedInstanceState: Bundle?,
     ) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 현재 Fragment의 View와 ViewBinding을 연결
         _binding = FragmentPlantRegisterBinding.bind(view)
 
-        // 화면의 클릭 이벤트 연결
+        setupInitialState()
         setupClickListeners()
     }
 
-    // 화면에서 사용하는 클릭 이벤트를 설정하는 함수
-    private fun setupClickListeners() {
+    // 식물 등록 화면을 검색 모드로 초기화한다.
+    private fun setupInitialState() {
+        showSearchMode(clearInformation = false)
+    }
 
-        // 프로필 이미지 선택 버튼 클릭
+    // 식물 등록 화면에서 사용하는 클릭 이벤트를 설정한다.
+    private fun setupClickListeners() {
         binding.btnSelectImage.setOnClickListener {
             imagePickerLauncher.launch("image/*")
         }
 
-        // 식물 검색 버튼 클릭
         binding.btnSearchPlant.setOnClickListener {
+            searchPlant()
         }
 
-        // 직접 등록하기 버튼 클릭
         binding.btnManualInput.setOnClickListener {
+            when (registerMode) {
+                RegisterMode.SEARCH -> showManualMode()
+                RegisterMode.MANUAL -> showSearchMode()
+            }
         }
 
-        // 심은 날짜 영역 클릭
         binding.tvPlantedDate.setOnClickListener {
             showPlantedDatePicker()
         }
 
-        // 마지막 물 준 날짜 영역 클릭
         binding.tvLastWateredDate.setOnClickListener {
             showLastWateredDatePicker()
         }
 
-        // 마지막 물 준 날짜를 모르는 경우 처리
         binding.cbUnknownLastWateredDate.setOnCheckedChangeListener { _, isChecked ->
             handleUnknownLastWateredDate(isChecked)
         }
 
-        // 식물 등록 버튼 클릭
         binding.btnRegisterPlant.setOnClickListener {
+            if (!validateInputs()) {
+                return@setOnClickListener
+            }
+
+            showMessage("입력값 검증을 통과했어요.")
         }
     }
 
-    // 심은 날짜를 선택하는 달력을 표시
-    private fun showPlantedDatePicker() {
+    // 검색어를 검사하고 추후 API 검색 결과가 표시될 영역을 연다.
+    private fun searchPlant() {
+        val keyword = binding.etSearchPlantName.text.toString().trim()
 
-        // 선택한 날짜가 없으면 오늘 날짜를 기준으로 달력을 엶
-        val calendar = Calendar.getInstance().apply {
-            selectedPlantedDate?.let { timeInMillis = it }
+        if (keyword.isBlank()) {
+            binding.etSearchPlantName.error =
+                "검색할 식물 이름을 입력해 주세요."
+
+            binding.etSearchPlantName.requestFocus()
+            return
         }
 
-        // 날짜 선택 다이얼로그 생성
+        binding.etSearchPlantName.error = null
+        binding.rvPlantSearchResult.visibility = View.VISIBLE
+
+        showMessage("'$keyword' 검색 기능은 API 연결 단계에서 구현할 예정이에요.")
+    }
+
+    // API 검색 결과를 이용하는 검색 등록 모드로 화면을 변경한다.
+    private fun showSearchMode(clearInformation: Boolean = true) {
+        registerMode = RegisterMode.SEARCH
+
+        binding.etSearchPlantName.isEnabled = true
+        binding.btnSearchPlant.isEnabled = true
+
+        binding.etSearchPlantName.alpha = 1.0f
+        binding.btnSearchPlant.alpha = 1.0f
+
+        binding.tvSearchGuide.text =
+            "식물을 검색하면 관리 정보가 자동으로 입력돼요."
+
+        binding.rvPlantSearchResult.visibility = View.GONE
+
+        setPlantInformationEnabled(false)
+
+        if (clearInformation) {
+            clearPlantInformation()
+        }
+
+        binding.btnManualInput.text = "직접 등록하기"
+    }
+
+    // 사용자가 식물 기본 정보를 직접 작성할 수 있는 모드로 화면을 변경한다.
+    private fun showManualMode() {
+        registerMode = RegisterMode.MANUAL
+
+        binding.etSearchPlantName.error = null
+        binding.etSearchPlantName.isEnabled = false
+        binding.btnSearchPlant.isEnabled = false
+
+        binding.etSearchPlantName.alpha = 0.5f
+        binding.btnSearchPlant.alpha = 0.5f
+
+        binding.tvSearchGuide.text =
+            "식물 정보를 아래 입력란에 직접 작성해 주세요."
+
+        binding.rvPlantSearchResult.visibility = View.GONE
+
+        clearPlantInformation()
+        setPlantInformationEnabled(true)
+
+        binding.etPlantName.requestFocus()
+        binding.btnManualInput.text = "검색으로 등록하기"
+    }
+
+    // 식물 기본 정보 입력란의 활성화 상태와 투명도를 변경한다.
+    private fun setPlantInformationEnabled(isEnabled: Boolean) {
+        val alpha = if (isEnabled) 1.0f else 0.6f
+
+        binding.etPlantName.isEnabled = isEnabled
+        binding.etLight.isEnabled = isEnabled
+        binding.etHumidity.isEnabled = isEnabled
+        binding.etTemperature.isEnabled = isEnabled
+        binding.etWateringInterval.isEnabled = isEnabled
+
+        binding.etPlantName.alpha = alpha
+        binding.etLight.alpha = alpha
+        binding.etHumidity.alpha = alpha
+        binding.etTemperature.alpha = alpha
+        binding.etWateringInterval.alpha = alpha
+    }
+
+    // 식물 이름과 관리 정보 입력란을 초기화한다.
+    private fun clearPlantInformation() {
+        binding.etPlantName.text?.clear()
+        binding.etLight.text?.clear()
+        binding.etHumidity.text?.clear()
+        binding.etTemperature.text?.clear()
+        binding.etWateringInterval.text?.clear()
+
+        binding.etPlantName.error = null
+        binding.etLight.error = null
+        binding.etHumidity.error = null
+        binding.etTemperature.error = null
+        binding.etWateringInterval.error = null
+    }
+
+    // 심은 날짜를 선택할 수 있는 달력을 표시한다.
+    private fun showPlantedDatePicker() {
+        val calendar = Calendar.getInstance().apply {
+            selectedPlantedDate?.let {
+                timeInMillis = it
+            }
+        }
+
         val datePickerDialog = DatePickerDialog(
             requireContext(),
             { _, year, month, dayOfMonth ->
+                val selectedCalendar = createDateCalendar(
+                    year = year,
+                    month = month,
+                    dayOfMonth = dayOfMonth,
+                )
 
-                // 선택한 날짜를 저장할 Calendar 객체 생성
-                val selectedCalendar = Calendar.getInstance().apply {
-                    set(Calendar.YEAR, year)
-                    set(Calendar.MONTH, month)
-                    set(Calendar.DAY_OF_MONTH, dayOfMonth)
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-
-                // 선택한 날짜를 밀리초로 저장
                 selectedPlantedDate = selectedCalendar.timeInMillis
-
-                // 선택한 날짜를 화면에 표시
                 binding.tvPlantedDate.text =
                     formatDate(selectedCalendar.timeInMillis)
             },
@@ -130,46 +217,34 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
             calendar.get(Calendar.DAY_OF_MONTH),
         )
 
-        // 미래 날짜 선택 방지
         datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
-
-        // 달력 표시
         datePickerDialog.show()
     }
 
-    // 마지막 물 준 날짜를 선택하는 달력을 표시
+    // 마지막으로 물을 준 날짜를 선택할 수 있는 달력을 표시한다.
     private fun showLastWateredDatePicker() {
-
-        // 날짜를 모른다고 체크한 경우 달력을 열지 않음
         if (binding.cbUnknownLastWateredDate.isChecked) {
             return
         }
 
-        // 선택한 날짜가 없으면 오늘 날짜를 기준으로 달력을 엶
         val calendar = Calendar.getInstance().apply {
-            selectedLastWateredDate?.let { timeInMillis = it }
+            selectedLastWateredDate?.let {
+                timeInMillis = it
+            }
         }
 
-        // 날짜 선택 다이얼로그 생성
         val datePickerDialog = DatePickerDialog(
             requireContext(),
             { _, year, month, dayOfMonth ->
+                val selectedCalendar = createDateCalendar(
+                    year = year,
+                    month = month,
+                    dayOfMonth = dayOfMonth,
+                )
 
-                // 선택한 날짜를 저장할 Calendar 객체 생성
-                val selectedCalendar = Calendar.getInstance().apply {
-                    set(Calendar.YEAR, year)
-                    set(Calendar.MONTH, month)
-                    set(Calendar.DAY_OF_MONTH, dayOfMonth)
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
+                selectedLastWateredDate =
+                    selectedCalendar.timeInMillis
 
-                // 선택한 날짜를 밀리초로 저장
-                selectedLastWateredDate = selectedCalendar.timeInMillis
-
-                // 선택한 날짜를 화면에 표시
                 binding.tvLastWateredDate.text =
                     formatDate(selectedCalendar.timeInMillis)
             },
@@ -178,19 +253,32 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
             calendar.get(Calendar.DAY_OF_MONTH),
         )
 
-        // 미래 날짜 선택 방지
-        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
+        datePickerDialog.datePicker.maxDate =
+            System.currentTimeMillis()
 
-        // 달력 표시
         datePickerDialog.show()
     }
 
-    // 마지막 물 준 날짜를 모르는 경우 화면과 날짜 값을 처리
+    // 선택한 연도와 월, 일을 자정 기준의 Calendar 객체로 만든다.
+    private fun createDateCalendar(
+        year: Int,
+        month: Int,
+        dayOfMonth: Int,
+    ): Calendar {
+        return Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month)
+            set(Calendar.DAY_OF_MONTH, dayOfMonth)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+    }
+
+    // 마지막 물 준 날짜를 모르는 경우 오늘 날짜를 자동으로 적용한다.
     private fun handleUnknownLastWateredDate(isChecked: Boolean) {
-
         if (isChecked) {
-
-            // 오늘 날짜를 자정 기준으로 생성
             val todayCalendar = Calendar.getInstance().apply {
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
@@ -198,35 +286,128 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
                 set(Calendar.MILLISECOND, 0)
             }
 
-            // 마지막 물 준 날짜를 오늘로 저장
-            selectedLastWateredDate = todayCalendar.timeInMillis
+            selectedLastWateredDate =
+                todayCalendar.timeInMillis
 
-            // 화면에 오늘 날짜를 표시
             binding.tvLastWateredDate.text =
                 formatDate(todayCalendar.timeInMillis)
 
-            // 날짜 선택 영역 비활성화
             binding.tvLastWateredDate.isEnabled = false
             binding.tvLastWateredDate.alpha = 0.5f
-
         } else {
-
-            // 체크 해제 시 선택한 날짜 초기화
             selectedLastWateredDate = null
 
-            // 날짜 안내 문구로 변경
-            binding.tvLastWateredDate.text = "날짜를 선택해 주세요"
+            binding.tvLastWateredDate.text =
+                "날짜를 선택해 주세요"
 
-            // 날짜 선택 영역 활성화
             binding.tvLastWateredDate.isEnabled = true
             binding.tvLastWateredDate.alpha = 1.0f
         }
     }
 
-    // 밀리초 날짜를 화면에 표시할 문자열로 변환
-    private fun formatDate(timeInMillis: Long): String {
+    // 필수 입력값과 물주기 간격이 올바른지 검사한다.
+    private fun validateInputs(): Boolean {
+        val plantName =
+            binding.etPlantName.text.toString().trim()
 
-        // 한국 날짜 형식 설정
+        val nickname =
+            binding.etNickname.text.toString().trim()
+
+        val wateringIntervalText =
+            binding.etWateringInterval.text.toString().trim()
+
+        binding.etPlantName.error = null
+        binding.etNickname.error = null
+        binding.etWateringInterval.error = null
+
+        if (plantName.isBlank()) {
+            val message = when (registerMode) {
+                RegisterMode.SEARCH ->
+                    "식물을 검색하고 검색 결과를 선택해 주세요."
+
+                RegisterMode.MANUAL ->
+                    "식물 이름을 입력해 주세요."
+            }
+
+            binding.etPlantName.error = message
+
+            if (registerMode == RegisterMode.MANUAL) {
+                binding.etPlantName.requestFocus()
+            }
+
+            showMessage(message)
+            return false
+        }
+
+        if (plantName.length > 50) {
+            binding.etPlantName.error =
+                "식물 이름은 50자 이내로 입력해 주세요."
+
+            binding.etPlantName.requestFocus()
+            return false
+        }
+
+        if (nickname.length > 30) {
+            binding.etNickname.error =
+                "별명은 30자 이내로 입력해 주세요."
+
+            binding.etNickname.requestFocus()
+            return false
+        }
+
+        if (wateringIntervalText.isBlank()) {
+            val message = when (registerMode) {
+                RegisterMode.SEARCH ->
+                    "식물을 검색하고 관리 정보를 선택해 주세요."
+
+                RegisterMode.MANUAL ->
+                    "물주기 간격을 입력해 주세요."
+            }
+
+            binding.etWateringInterval.error = message
+
+            if (registerMode == RegisterMode.MANUAL) {
+                binding.etWateringInterval.requestFocus()
+            }
+
+            showMessage(message)
+            return false
+        }
+
+        val wateringIntervalDays =
+            wateringIntervalText.toIntOrNull()
+
+        if (wateringIntervalDays == null) {
+            binding.etWateringInterval.error =
+                "물주기 간격은 숫자로 입력해 주세요."
+
+            binding.etWateringInterval.requestFocus()
+            return false
+        }
+
+        if (wateringIntervalDays !in 1..365) {
+            binding.etWateringInterval.error =
+                "물주기 간격은 1일에서 365일 사이로 입력해 주세요."
+
+            binding.etWateringInterval.requestFocus()
+            return false
+        }
+
+        if (selectedPlantedDate == null) {
+            showMessage("심은 날짜를 선택해 주세요.")
+            return false
+        }
+
+        if (selectedLastWateredDate == null) {
+            showMessage("마지막으로 물 준 날짜를 선택해 주세요.")
+            return false
+        }
+
+        return true
+    }
+
+    // 밀리초로 저장된 날짜를 화면에 표시할 문자열로 변환한다.
+    private fun formatDate(timeInMillis: Long): String {
         val dateFormat = SimpleDateFormat(
             "yyyy. MM. dd.",
             Locale.KOREA,
@@ -235,11 +416,18 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         return dateFormat.format(timeInMillis)
     }
 
-    // Fragment의 XML 화면이 제거될 때 호출되는 함수
+    // 사용자에게 짧은 안내 메시지를 표시한다.
+    private fun showMessage(message: String) {
+        Toast.makeText(
+            requireContext(),
+            message,
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
+
+    // Fragment 화면이 사라질 때 ViewBinding 참조를 제거한다.
     override fun onDestroyView() {
         super.onDestroyView()
-
-        // 제거된 화면을 Binding이 계속 참조하지 않도록 해제
         _binding = null
     }
 }
