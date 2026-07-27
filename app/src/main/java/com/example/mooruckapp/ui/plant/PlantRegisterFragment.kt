@@ -1,5 +1,6 @@
 package com.example.mooruckapp.ui.plant
 
+import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -7,6 +8,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.example.mooruckapp.R
 import com.example.mooruckapp.databinding.FragmentPlantRegisterBinding
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
@@ -18,6 +22,9 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
     // 사용자가 선택한 이미지의 위치를 저장하는 변수
     private var selectedImageUri: Uri? = null
+
+    // 사용자가 선택한 심은 날짜를 밀리초로 저장
+    private var selectedPlantedDate: Long? = null
 
     // 갤러리를 열고 사용자가 선택한 이미지 결과를 받아오는 객체
     private val imagePickerLauncher =
@@ -53,8 +60,6 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
         // 프로필 이미지 선택 버튼 클릭
         binding.btnSelectImage.setOnClickListener {
-
-            // 이미지 파일만 선택할 수 있도록 갤러리를 실행
             imagePickerLauncher.launch("image/*")
         }
 
@@ -68,6 +73,7 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
 
         // 심은 날짜 영역 클릭
         binding.tvPlantedDate.setOnClickListener {
+            showPlantedDatePicker()
         }
 
         // 마지막 물 준 날짜 영역 클릭
@@ -77,6 +83,61 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         // 식물 등록 버튼 클릭
         binding.btnRegisterPlant.setOnClickListener {
         }
+    }
+
+    // 심은 날짜를 선택하는 달력을 표시
+    private fun showPlantedDatePicker() {
+
+        // 선택한 날짜가 없으면 오늘 날짜를 기준으로 달력을 엶
+        val calendar = Calendar.getInstance().apply {
+            selectedPlantedDate?.let { timeInMillis = it }
+        }
+
+        // 날짜 선택 다이얼로그 생성
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+
+                // 선택한 날짜를 저장할 Calendar 객체 생성
+                val selectedCalendar = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, year)
+                    set(Calendar.MONTH, month)
+                    set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+
+                // 선택한 날짜를 밀리초로 저장
+                selectedPlantedDate = selectedCalendar.timeInMillis
+
+                // 선택한 날짜를 화면에 표시
+                binding.tvPlantedDate.text =
+                    formatDate(selectedCalendar.timeInMillis)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH),
+        )
+
+        // 미래 날짜 선택 방지
+        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
+
+        // 달력 표시
+        datePickerDialog.show()
+    }
+
+    // 밀리초 날짜를 화면에 표시할 문자열로 변환
+    private fun formatDate(timeInMillis: Long): String {
+
+        // 한국 날짜 형식 설정
+        val dateFormat = SimpleDateFormat(
+            "yyyy. MM. dd.",
+            Locale.KOREA,
+        )
+
+        return dateFormat.format(timeInMillis)
     }
 
     // Fragment의 XML 화면이 제거될 때 호출되는 함수
