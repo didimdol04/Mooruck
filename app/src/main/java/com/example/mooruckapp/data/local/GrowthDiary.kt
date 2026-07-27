@@ -1,5 +1,6 @@
 package com.example.mooruckapp.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -23,6 +24,7 @@ data class GrowthDiary(
     val id: Long = 0,
 
     // 어느 식물의 일지인지
+    @ColumnInfo(name = "user_plant_id")
     val userPlantId: Long,
 
     // 일지 작성 날짜
