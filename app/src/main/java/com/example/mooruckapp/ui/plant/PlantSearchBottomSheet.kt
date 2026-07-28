@@ -1,6 +1,7 @@
 package com.example.mooruckapp.ui.plant
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,11 +22,16 @@ import kotlinx.coroutines.launch
 class PlantSearchBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
-        const val SEARCH_DEBOUNCE_TIME = 500L
+        private const val SEARCH_DEBOUNCE_TIME = 500L
 
-        // TODO: 인증키 추가 후 BuildConfig로 리팩토링
-        const val REQUEST_KEY_PLANT_SELECTED = "request_key_plant_selected"
-        const val BUNDLE_KEY_CONTENT_NO = "bundle_key_content_no"
+        const val REQUEST_KEY_PLANT_SELECTED =
+            "request_key_plant_selected"
+
+        const val BUNDLE_KEY_CONTENT_NO =
+            "bundle_key_content_no"
+
+        const val BUNDLE_KEY_PLANT_NAME =
+            "bundle_key_plant_name"
     }
 
     private val repository = PlantRepository()
@@ -67,7 +73,6 @@ class PlantSearchBottomSheet : BottomSheetDialogFragment() {
             LinearLayoutManager(requireContext())
 
         binding.recyclerViewPlants.adapter = plantSearchAdapter
-        binding.recyclerViewPlants.setHasFixedSize(true)
 
         binding.editTextSearch.doAfterTextChanged { editable ->
 
@@ -95,66 +100,47 @@ class PlantSearchBottomSheet : BottomSheetDialogFragment() {
     }
 
     private suspend fun searchPlants(keyword: String) {
-
-        val apiKey = ""
-
-        if (apiKey.isBlank()) {
-            Toast.makeText(
-                requireContext(),
-                "API 인증키가 아직 등록되지 않았습니다.",
-                Toast.LENGTH_SHORT,
-            ).show()
-
-            return
-        }
-
         binding.progressBarSearch.visibility = View.VISIBLE
         binding.textViewEmptyResult.visibility = View.GONE
 
         try {
-            val result = repository.searchPlants(
-                apiKey = apiKey,
-                keyword = keyword,
-            )
+            val result = repository.searchPlants(keyword)
 
-            if (_binding == null) {
-                return
-            }
-
-            val plants = result.response
-                .body
-                .items
-                .item
+            if (_binding == null) return
 
             val currentKeyword = binding.editTextSearch.text
                 .toString()
                 .trim()
 
-            if (currentKeyword != keyword) {
-                return
-            }
+            if (currentKeyword != keyword) return
+
+            val plants = result.plants
+
+            Log.d(
+                "PlantSearch",
+                "검색어=$keyword, 결과 수=${plants.size}, 결과=${plants.map { it.title }}"
+            )
 
             plantSearchAdapter.submitList(plants)
 
             binding.textViewEmptyResult.visibility =
-                if (plants.isEmpty()) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+                if (plants.isEmpty()) View.VISIBLE else View.GONE
 
         } catch (exception: CancellationException) {
             throw exception
+
         } catch (exception: Exception) {
+            Log.e("PlantSearch", "식물 검색 실패", exception)
+
             if (_binding != null) {
+                plantSearchAdapter.submitList(emptyList())
+
                 Toast.makeText(
                     requireContext(),
-                    "식물을 검색하는 중 오류가 발생했습니다.",
-                    Toast.LENGTH_SHORT,
+                    "식물 검색에 실패했습니다.",
+                    Toast.LENGTH_LONG,
                 ).show()
             }
-
-            exception.printStackTrace()
 
         } finally {
             if (_binding != null) {
@@ -164,18 +150,29 @@ class PlantSearchBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun onPlantSelected(selectedPlant: PlantItem) {
+
         val result = Bundle().apply {
+
+            // 상세 API 호출에 사용할 식물 번호
             putString(
                 BUNDLE_KEY_CONTENT_NO,
                 selectedPlant.contentNo,
             )
+
+            // 등록 화면에 바로 표시할 식물 이름
+            putString(
+                BUNDLE_KEY_PLANT_NAME,
+                selectedPlant.title,
+            )
         }
 
+        // 등록 화면으로 선택 결과 전달
         parentFragmentManager.setFragmentResult(
             REQUEST_KEY_PLANT_SELECTED,
             result,
         )
 
+        // BottomSheet 닫기
         dismiss()
     }
 
