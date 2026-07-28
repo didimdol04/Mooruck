@@ -1,3 +1,5 @@
+package com.example.mooruckapp.network.mapper
+
 object PlantMapper {
 
     fun waterCycleCodeToDays(code: String): Int {
