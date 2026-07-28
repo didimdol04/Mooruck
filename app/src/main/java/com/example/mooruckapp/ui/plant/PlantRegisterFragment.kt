@@ -16,6 +16,7 @@ import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.data.local.entity.WateringRecord
 import com.example.mooruckapp.databinding.FragmentPlantRegisterBinding
 import com.example.mooruckapp.network.dto.PlantDetail
+import com.example.mooruckapp.network.mapper.PlantMapper
 import com.example.mooruckapp.repository.PlantRepository
 import com.example.mooruckapp.ui.plant.PlantSearchBottomSheet.Companion.BUNDLE_KEY_CONTENT_NO
 import com.example.mooruckapp.ui.plant.PlantSearchBottomSheet.Companion.REQUEST_KEY_PLANT_SELECTED
@@ -176,28 +177,21 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         detailJob?.cancel()
 
         detailJob = viewLifecycleOwner.lifecycleScope.launch {
-            val apiKey = ""
-
-            if (apiKey.isBlank()) {
-                showMessage("API 인증키가 아직 등록되지 않았어요.")
-                return@launch
-            }
-
             setDetailLoading(true)
 
             try {
-                val result = repository.getPlantDetail(
-                    apiKey = apiKey,
+                // 선택한 식물 번호로 상세 정보를 요청해.
+                val plantDetail = repository.getPlantDetail(
                     contentNo = contentNo,
                 )
 
-                val plantDetail = result.response
-                    .body
-                    .item
-
+                // API 결과를 등록 화면에 입력해.
                 fillPlantInformation(plantDetail)
+
             } catch (exception: CancellationException) {
+                // 새로운 요청으로 기존 작업이 취소된 경우 정상적으로 다시 던져.
                 throw exception
+
             } catch (exception: Exception) {
                 exception.printStackTrace()
 
@@ -206,6 +200,7 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
                         "식물 상세 정보를 불러오는 중 오류가 발생했어요.",
                     )
                 }
+
             } finally {
                 if (_binding != null) {
                     setDetailLoading(false)
@@ -217,21 +212,31 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
     private fun fillPlantInformation(
         plantDetail: PlantDetail,
     ) {
+        // 검색 결과로 불러온 정보이므로 검색 모드로 설정해.
+        registerMode = RegisterMode.SEARCH
+
+        // API로 채운 정보는 사용자가 수정하지 못하게 유지해.
+        setPlantInformationEnabled(false)
+
         val wateringIntervalDays =
-            PlantMapper.waterCycleCodeToDays(
-                plantDetail.springWaterCode,
-            )
+            if (plantDetail.springWaterCode.isNotBlank()) {
+                PlantMapper.waterCycleCodeToDays(
+                    plantDetail.springWaterCode,
+                )
+            } else {
+                null
+            }
 
         binding.etSearchPlantName.setText(
-            plantDetail.plantName,
+            plantDetail.name,
         )
 
         binding.etPlantName.setText(
-            plantDetail.plantName,
+            plantDetail.name,
         )
 
         binding.etLight.setText(
-            plantDetail.light.ifBlank {
+            plantDetail.lightDemand.ifBlank {
                 "정보 없음"
             },
         )
@@ -249,11 +254,14 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         )
 
         binding.etWateringInterval.setText(
-            wateringIntervalDays.toString(),
+            wateringIntervalDays?.toString().orEmpty(),
         )
 
         clearPlantInformationErrors()
-        showMessage("${plantDetail.plantName} 정보를 불러왔어요.")
+
+        showMessage(
+            "${plantDetail.name} 정보를 불러왔어요.",
+        )
     }
 
     private fun setDetailLoading(isLoading: Boolean) {
