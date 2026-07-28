@@ -12,13 +12,13 @@ import androidx.work.WorkerParameters
 import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
 import com.example.mooruckapp.domain.WateringNeedChecker
+import com.example.mooruckapp.widget.WateringWidgetProvider
 
 /**
- * 매일 실행되는 물주기 알림 워커
+ * 매일 실행되는 물주기 확인 워커
  *
- * 1) 사용자가 알림을 꺼뒀으면 아무것도 하지 않음
- * 2) 오늘 물 줘야 하는 식물이 없으면 아무것도 하지 않음
- * 3) 하나 이상 있으면 "N개 식물에게 물을 주세요" 형태로 알림 1개만 표시
+ * 1) 오늘 물 줘야 하는 식물 목록을 계산해서 위젯을 항상 최신 상태로 갱신
+ * 2) 사용자가 알림을 켜뒀고, 물 줄 식물이 하나 이상 있으면 "N개 식물에게 물을 주세요" 알림 1개만 표시
  */
 class WateringNotificationWorker(
     context: Context,
@@ -28,14 +28,17 @@ class WateringNotificationWorker(
     override suspend fun doWork(): Result {
         val db = AppDatabase.getInstance(applicationContext)
 
-        val user = db.userDao().getUser() ?: return Result.success()
-        if (!user.wateringNotificationEnabled) return Result.success()
-
         val checker = WateringNeedChecker(db.userPlantDao(), db.wateringRecordDao())
         val plantsNeedingWater = checker.getPlantsNeedingWaterToday()
-        if (plantsNeedingWater.isEmpty()) return Result.success()
 
-        showNotification(plantCount = plantsNeedingWater.size)
+        // 위젯은 알림 켜짐/꺼짐과 무관하게 항상 최신 정보 표시
+        WateringWidgetProvider.updateAllWidgets(applicationContext)
+
+        val user = db.userDao().getUser()
+        if (user?.wateringNotificationEnabled == true && plantsNeedingWater.isNotEmpty()) {
+            showNotification(plantCount = plantsNeedingWater.size)
+        }
+
         return Result.success()
     }
 

@@ -24,6 +24,7 @@ import com.example.mooruckapp.data.local.entity.User
 import com.example.mooruckapp.domain.WateringScoreCalculator
 import com.example.mooruckapp.notification.WateringNotificationScheduler
 import com.example.mooruckapp.ui.common.WaterDropScoreView
+import com.example.mooruckapp.widget.WateringWidgetProvider
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -47,6 +48,9 @@ class MyPageFragment : Fragment() {
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
+        // 권한 팝업 응답이 화면이 이미 닫힌 뒤에 올 수도 있어서, 화면이 살아있을 때만 처리
+        if (view == null) return@registerForActivityResult
+
         if (granted) {
             applyNotificationEnabled(true)
         } else {
@@ -90,6 +94,8 @@ class MyPageFragment : Fragment() {
 
         // 매일 물주기 확인 작업 등록 (이미 등록돼 있으면 동작 X)
         WateringNotificationScheduler.schedule(requireContext())
+        // 마이페이지 들어올 때마다 위젯도 최신 상태로 한 번 갱신
+        WateringWidgetProvider.updateAllWidgets(requireContext())
 
         loadMyPageData()
     }
@@ -97,15 +103,16 @@ class MyPageFragment : Fragment() {
     private fun loadMyPageData() {
         val db = AppDatabase.getInstance(requireContext())
 
-        lifecycleScope.launch {
-            // 로그인 없는 앱이라, 아직 row가 없으면 여기서 기본 사용자 row를 만들어둔다.
+        // viewLifecycleOwner 기준으로 실행: 화면이 사라지면(onDestroyView) 코루틴도 같이 정리되어
+        // 이미 사라진 뷰를 건드리다 죽는 걸 방지
+        viewLifecycleOwner.lifecycleScope.launch {
             db.userDao().insertIfNotExists(User(nickname = "식집사"))
 
             val user = db.userDao().getUser() ?: return@launch
             currentNickname = user.nickname
             tvNickname.text = user.nickname
 
-            // 리스너 달기 전에 먼저 초기값을 세팅해서, 세팅하면서 리스너가 불필요하게 호출되지 않게 함
+            // 리스너 달기 전에 먼저 초기값 세팅
             switchNotification.isChecked = user.wateringNotificationEnabled
             switchNotification.setOnCheckedChangeListener(notificationSwitchListener)
 
@@ -119,7 +126,7 @@ class MyPageFragment : Fragment() {
         }
     }
 
-    /** API 33 미만은 런타임 권한 자체가 없어서 항상 false */
+    /** API 33 미만은 런타임 권한이 없으므로 항상 false */
     private fun needsNotificationPermissionRequest(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
 
@@ -132,12 +139,13 @@ class MyPageFragment : Fragment() {
     }
 
     private fun applyNotificationEnabled(enabled: Boolean) {
-        lifecycleScope.launch {
+        if (view == null) return
+
+        viewLifecycleOwner.lifecycleScope.launch {
             AppDatabase.getInstance(requireContext()).userDao().updateNotificationEnabled(enabled)
         }
     }
 
-    /** 리스너를 잠깐 떼고 값을 바꿔서, 프로그램적으로 되돌릴 때 리스너가 다시 불리지 않게 함 */
     private fun setSwitchCheckedSilently(checked: Boolean) {
         switchNotification.setOnCheckedChangeListener(null)
         switchNotification.isChecked = checked
@@ -161,7 +169,7 @@ class MyPageFragment : Fragment() {
                     return@setPositiveButton
                 }
 
-                lifecycleScope.launch {
+                viewLifecycleOwner.lifecycleScope.launch {
                     AppDatabase.getInstance(requireContext()).userDao().updateNickname(newNickname)
                     currentNickname = newNickname
                     tvNickname.text = newNickname
