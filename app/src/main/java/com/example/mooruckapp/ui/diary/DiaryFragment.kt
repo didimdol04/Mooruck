@@ -60,7 +60,7 @@ class DiaryFragment : Fragment() {
         rvDiary.layoutManager = LinearLayoutManager(requireContext())
         rvDiary.adapter = adapter
 
-        // ↓ 여기에 필터 설정 추가
+        // 상단 식물 필터 설정
         val rvPlantFilter = view.findViewById<RecyclerView>(R.id.rvPlantFilter)
         plantFilterAdapter = PlantFilterAdapter(
             plants = emptyList(),
