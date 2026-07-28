@@ -13,7 +13,7 @@
     app:cardBackgroundColor="@color/white"
     app:cardCornerRadius="20dp"
     app:cardElevation="3dp"
-    app:strokeColor="@color/light_gray"
+    app:strokeColor="@color/gray_light"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -30,7 +30,7 @@
                 android:id="@+id/imagePlant"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/light_gray"
+                android:background="@color/gray_light"
                 android:contentDescription="식물 프로필 사진"
                 android:scaleType="centerCrop"
                 app:srcCompat="@drawable/ic_plant_placeholder" />
@@ -78,7 +78,7 @@
             android:layout_marginTop="3dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/dark_gray"
+            android:textColor="@color/gray_dark"
             android:textSize="14sp"
             tools:text="몬몬이" />
 
@@ -88,7 +88,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="9dp"
             android:maxLines="2"
-            android:textColor="@color/main_green"
+            android:textColor="@color/primary_green"
             android:textSize="13sp"
             android:textStyle="bold"
             tools:text="오늘 물을 주세요" />
