@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.mooruckapp.data.local.dao.UserDao
+import com.example.mooruckapp.data.local.dao.UserPlantDao
 import com.example.mooruckapp.data.local.dao.WateringRecordDao
 import com.example.mooruckapp.data.local.entity.User
 import com.example.mooruckapp.data.local.entity.UserPlant
@@ -19,6 +20,7 @@ import com.example.mooruckapp.data.local.entity.WateringRecord
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
+    abstract fun userPlantDao(): UserPlantDao
     abstract fun wateringRecordDao(): WateringRecordDao
     abstract fun growthDiaryDao(): GrowthDiaryDao
 

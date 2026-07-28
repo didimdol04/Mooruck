@@ -26,6 +26,9 @@ class WateringScoreCalculatorTest {
         return UserPlant(
             id = 1L,
             plantName = "테스트식물",
+            light = "보통",
+            humidity = "보통",
+            temperature = "보통",
             wateringIntervalDays = intervalDays,
             plantedDate = plantedDate,
         )
