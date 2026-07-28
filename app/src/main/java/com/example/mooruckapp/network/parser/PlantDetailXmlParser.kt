@@ -24,12 +24,6 @@ object PlantDetailXmlParser {
         // 봄철 물주기 코드
         var springWaterCode = ""
 
-        // 봄철 물주기 설명
-        var springWaterDescription = ""
-
-        // 대표 이미지
-        var imageUrl = ""
-
         val parser = Xml.newPullParser().apply {
             setInput(StringReader(xml))
         }
