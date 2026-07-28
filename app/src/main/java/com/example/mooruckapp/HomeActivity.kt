@@ -15,6 +15,9 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
+//추가
+import android.content.Intent
+import android.view.View
 
 class HomeActivity : AppCompatActivity() {
 
@@ -57,8 +60,15 @@ class HomeActivity : AppCompatActivity() {
             plants = emptyList(),
 
             onPlantClick = { plant ->
-                // TODO: 식물 상세 Activity 연결
-                // 상세 화면 Activity 이름이 확인되면 Intent를 추가하면 된다.
+                val intent = Intent(
+                    this,
+                    MainActivity::class.java
+                ).apply {
+                    putExtra("openPlantDetail", true)
+                    putExtra("plantId", plant.id)
+                }
+
+                startActivity(intent)
             },
 
             onWaterClick = { plant ->
@@ -95,23 +105,39 @@ class HomeActivity : AppCompatActivity() {
      * wateringIntervalDays를 사용해 홈 카드 문구를 계산한다.
      */
     private suspend fun refreshHomePlantItems() {
-        homePlantItems = userPlants.map { userPlant ->
 
-            val lastWateredDate = database
-                .wateringRecordDao()
-                .getLastWateredDate(userPlant.id)
+        homePlantItems = userPlants
+            .map { userPlant ->
 
-            HomePlantItem(
-                id = userPlant.id,
-                plantName = userPlant.plantName,
-                nickname = userPlant.nickname,
-                profileImageUri = userPlant.profileImageUri,
-                wateringMessage = makeWateringMessage(
-                    plant = userPlant,
-                    lastWateredDate = lastWateredDate
+                val lastWateredDate =
+                    database.wateringRecordDao()
+                        .getLastWateredDate(userPlant.id)
+
+                Triple(
+                    HomePlantItem(
+                        id = userPlant.id,
+                        plantName = userPlant.plantName,
+                        nickname = userPlant.nickname,
+                        profileImageUri = userPlant.profileImageUri,
+                        wateringMessage = makeWateringMessage(
+                            plant = userPlant,
+                            lastWateredDate = lastWateredDate
+                        )
+                    ),
+                    remainingWaterDays(
+                        userPlant,
+                        lastWateredDate
+                    ),
+                    userPlant.plantName
+                )
+            }
+            .sortedWith(
+                compareBy<Triple<HomePlantItem, Long, String>>(
+                    { it.second },   // 남은 날짜
+                    { it.third }     // 이름
                 )
             )
-        }
+            .map { it.first }
 
         applySearchFilter()
     }
@@ -124,6 +150,8 @@ class HomeActivity : AppCompatActivity() {
 
     /**
      * 현재 검색창에 입력된 문자를 기준으로 식물 이름과 별명을 검색한다.
+     *
+     * 등록된 식물이 하나도 없으면 빈 목록 안내 문구를 표시한다.
      */
     private fun applySearchFilter() {
         val keyword = binding.editTextSearch.text
@@ -145,6 +173,13 @@ class HomeActivity : AppCompatActivity() {
                         ) == true
             }
         }
+
+        binding.textEmptyPlants.visibility =
+            if (homePlantItems.isEmpty()) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
 
         plantAdapter.updatePlants(filteredPlants)
     }
@@ -238,7 +273,11 @@ class HomeActivity : AppCompatActivity() {
 
     private fun setupButtons() {
         binding.buttonAddPlant.setOnClickListener {
-            // TODO: 식물 등록 Activity 연결
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("openPlantRegister", true)
+            }
+
+            startActivity(intent)
         }
 
         binding.buttonDiary.setOnClickListener {
@@ -249,4 +288,22 @@ class HomeActivity : AppCompatActivity() {
             // TODO: 마이페이지 Activity 연결
         }
     }
+
+    private fun remainingWaterDays(
+        plant: UserPlant,
+        lastWateredDate: Long?
+    ): Long {
+
+        val baseDate = lastWateredDate ?: plant.plantedDate
+
+        val dueDate = baseDate +
+                TimeUnit.DAYS.toMillis(
+                    plant.wateringIntervalDays.toLong()
+                )
+
+        return TimeUnit.MILLISECONDS.toDays(
+            dueDate - getTodayStartMillis()
+        )
+    }
+
 }

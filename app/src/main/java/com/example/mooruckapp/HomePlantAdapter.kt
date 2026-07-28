@@ -18,14 +18,21 @@ class HomePlantAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(plant: HomePlantItem) {
-            binding.textPlantName.text = plant.plantName
+
+            // 별명이 있으면 큰 글씨에 별명 표시,
+            // 없으면 품종명을 표시
+            binding.textPlantName.text =
+                plant.nickname?.takeIf { it.isNotBlank() }
+                    ?: plant.plantName
+
             binding.textWateringStatus.text = plant.wateringMessage
 
+            // 별명이 있을 때만 아래에 품종명을 표시
             if (plant.nickname.isNullOrBlank()) {
                 binding.textNickname.visibility = View.GONE
             } else {
                 binding.textNickname.visibility = View.VISIBLE
-                binding.textNickname.text = plant.nickname
+                binding.textNickname.text = plant.plantName
             }
 
             if (plant.profileImageUri.isNullOrBlank()) {
