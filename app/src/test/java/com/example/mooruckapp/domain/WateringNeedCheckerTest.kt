@@ -12,9 +12,9 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 /**
- * WateringNeedChecker 유닛 테스트.
- * 실제 Room DB 대신 FakeUserPlantDao / FakeWateringRecordDao로 값을 고정해서 검증한다.
- * (가짜 DAO는 다른 테스트 파일의 같은 이름 클래스와 충돌하지 않도록 이 클래스 내부에 nested로 둔다.)
+ * WateringNeedChecker 유닛 테스트
+ * 실제 Room DB 대신 FakeUserPlantDao / FakeWateringRecordDao로 값을 고정해서 검증
+ * 가짜 DAO는 충돌을 막기 위해 이 클래스 내부에 nested로 두었음
  */
 class WateringNeedCheckerTest {
 

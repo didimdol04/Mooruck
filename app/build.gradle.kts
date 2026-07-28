@@ -59,4 +59,7 @@ dependencies {
 
     // 비동기 처리 (코루틴)
     implementation(libs.kotlinx.coroutines.android)
+
+    // 물주기 알림 스케줄링 (매일 정해진 시간에 확인)
+    implementation(libs.androidx.work.runtime.ktx)
 }
