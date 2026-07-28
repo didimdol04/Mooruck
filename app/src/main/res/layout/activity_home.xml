@@ -36,7 +36,7 @@
         app:boxCornerRadiusBottomStart="16dp"
         app:boxCornerRadiusTopEnd="16dp"
         app:boxCornerRadiusTopStart="16dp"
-        app:boxStrokeColor="@color/main_green"
+        app:boxStrokeColor="@color/primary_green"
         app:endIconDrawable="@drawable/ic_search"
         app:endIconMode="custom"
         app:layout_constraintEnd_toEndOf="parent"
@@ -52,7 +52,7 @@
             android:paddingTop="14dp"
             android:paddingBottom="14dp"
             android:textColor="@color/black"
-            android:textColorHint="@color/dark_gray"
+            android:textColorHint="@color/gray_dark"
             android:textSize="15sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -80,13 +80,13 @@
             android:maxLines="1"
             android:text="식물 추가"
             android:textSize="12sp"
-            android:textColor="@color/main_green"
+            android:textColor="@color/primary_green"
             app:cornerRadius="14dp"
             app:icon="@drawable/ic_add"
             app:iconSize="18dp"
             app:iconPadding="2dp"
-            app:iconTint="@color/main_green"
-            app:strokeColor="@color/main_green" />
+            app:iconTint="@color/primary_green"
+            app:strokeColor="@color/primary_green" />
 
         <Space
             android:layout_width="8dp"
@@ -101,7 +101,7 @@
             android:paddingStart="6dp"
             android:paddingEnd="6dp"
             android:maxLines="1"
-            android:backgroundTint="@color/main_green"
+            android:backgroundTint="@color/primary_green"
             android:text="성장 일지"
             android:textSize="13sp"
             android:textColor="@color/white"
@@ -123,9 +123,9 @@
             android:maxLines="1"
             android:text="마이페이지"
             android:textSize="12sp"
-            android:textColor="@color/main_green"
+            android:textColor="@color/primary_green"
             app:cornerRadius="14dp"
-            app:strokeColor="@color/main_green" />
+            app:strokeColor="@color/primary_green" />
 
     </LinearLayout>
 
