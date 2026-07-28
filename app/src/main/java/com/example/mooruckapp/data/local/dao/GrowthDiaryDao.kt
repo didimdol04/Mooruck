@@ -15,7 +15,7 @@ interface GrowthDiaryDao {
     suspend fun getAll(): List<GrowthDiary>
 
     // 특정 식물의 일지만 조회
-    @Query("SELECT * FROM growth_diary WHERE userPlantId = :plantId ORDER BY diaryDate DESC")
+    @Query("SELECT * FROM growth_diary WHERE user_plant_id = :plantId ORDER BY diaryDate DESC")
     suspend fun getByPlant(plantId: Long): List<GrowthDiary>
 
     // 일지 하나 조회
