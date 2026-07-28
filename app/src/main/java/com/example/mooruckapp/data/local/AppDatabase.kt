@@ -11,9 +11,13 @@ import com.example.mooruckapp.data.local.entity.User
 import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.data.local.entity.WateringRecord
 
-
 @Database(
-    entities = [User::class, UserPlant::class, GrowthDiary::class, WateringRecord::class],
+    entities = [
+        User::class,
+        UserPlant::class,
+        GrowthDiary::class,
+        WateringRecord::class,
+    ],
     version = 1,
     exportSchema = false
 )
