@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 식물을 삭제하는 메뉴이다. -->
+    <item
+        android:id="@+id/menuDeletePlant"
+        android:title="식물 삭제" />
+
+</menu>
