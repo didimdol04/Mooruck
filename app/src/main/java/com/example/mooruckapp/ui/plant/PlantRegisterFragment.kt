@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
-import com.example.mooruckapp.data.local.GrowthDiary
+import com.example.mooruckapp.data.local.entity.GrowthDiary
 import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.data.local.entity.WateringRecord
 import com.example.mooruckapp.databinding.FragmentPlantRegisterBinding

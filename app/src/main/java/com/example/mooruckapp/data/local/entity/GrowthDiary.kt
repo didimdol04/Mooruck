@@ -1,11 +1,10 @@
-package com.example.mooruckapp.data.local
+package com.example.mooruckapp.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.mooruckapp.data.local.entity.UserPlant
 
 @Entity(
     tableName = "growth_diary",
@@ -14,7 +13,7 @@ import com.example.mooruckapp.data.local.entity.UserPlant
             entity = UserPlant::class,
             parentColumns = ["id"],
             childColumns = ["user_plant_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.Companion.CASCADE
         )
     ],
     indices = [Index(value = ["user_plant_id"])]

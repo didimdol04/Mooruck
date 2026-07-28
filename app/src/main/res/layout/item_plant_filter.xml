@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="4dp">
+
+    <!-- 식물 원형 사진 -->
+    <ImageView
+        android:id="@+id/ivPlantThumb"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:scaleType="centerCrop"
+        android:background="#CCCCCC" />
+
+    <!-- 식물 이름 -->
+    <TextView
+        android:id="@+id/tvPlantLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:maxWidth="64dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textSize="12sp"
+        android:textColor="#757575"
+        tools:text="베이비토마"
+        xmlns:tools="http://schemas.android.com/tools" />
+
+</LinearLayout>

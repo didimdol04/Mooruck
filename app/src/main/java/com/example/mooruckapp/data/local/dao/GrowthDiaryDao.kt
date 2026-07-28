@@ -5,7 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.example.mooruckapp.data.local.GrowthDiary
+import com.example.mooruckapp.data.local.entity.GrowthDiary
 
 @Dao
 interface GrowthDiaryDao {

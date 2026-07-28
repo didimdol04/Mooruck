@@ -8,7 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mooruckapp.R
-import com.example.mooruckapp.data.local.GrowthDiary
+import com.example.mooruckapp.data.local.entity.GrowthDiary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
