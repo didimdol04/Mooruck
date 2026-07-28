@@ -4,7 +4,7 @@ import com.example.mooruckapp.network.api.PlantApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object RetrofitClient {
 
@@ -20,9 +20,9 @@ object RetrofitClient {
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(BASE_URL) // 농사로 API 기본 주소
+            .client(okHttpClient) // 로그를 포함한 OkHttpClient
+            .addConverterFactory(ScalarsConverterFactory.create()) // 응답을 String으로 받음
             .build()
     }
 
