@@ -1,14 +1,30 @@
 package com.example.mooruckapp.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.mooruckapp.data.local.entity.UserPlant
 
-@Entity(tableName = "growth_diary")
+@Entity(
+    tableName = "growth_diary",
+    foreignKeys = [
+        ForeignKey(
+            entity = UserPlant::class,
+            parentColumns = ["id"],
+            childColumns = ["user_plant_id"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["user_plant_id"])]
+)
 data class GrowthDiary(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
     // 어느 식물의 일지인지
+    @ColumnInfo(name = "user_plant_id")
     val userPlantId: Long,
 
     // 일지 작성 날짜
