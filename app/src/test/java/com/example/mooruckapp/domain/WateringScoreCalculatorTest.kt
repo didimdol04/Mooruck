@@ -22,10 +22,10 @@ class WateringScoreCalculatorTest {
         return WateringScoreCalculator(fakeDao)
     }
 
-    private fun testPlant(plantedDate: Long, intervalDays: Int): UserPlant {
+    private fun testPlant(plantedDate: Long, intervalDays: Int, id: Long = 1L): UserPlant {
         return UserPlant(
-            id = 1L,
-            plantName = "테스트식물",
+            id = id,
+            plantName = "테스트식물$id",
             light = "보통",
             humidity = "보통",
             temperature = "보통",
@@ -89,6 +89,44 @@ class WateringScoreCalculatorTest {
 
         assertEquals(100, score)
     }
+
+    @Test
+    fun `전체 점수 - 등록된 식물이 없으면 만점`() = runBlocking {
+        val calculator = WateringScoreCalculator(FakeWateringRecordDaoByPlant(emptyMap()))
+
+        val score = calculator.calculateOverallScore(emptyList(), today = 7 * oneDayMillis)
+
+        assertEquals(100, score)
+    }
+
+    @Test
+    fun `전체 점수 - 여러 식물의 실제,기대 횟수를 합산해서 계산`() = runBlocking {
+        // 식물1: 주기 3일, 7일 경과 -> 기대 3회, 실제 2회
+        // 식물2: 주기 3일, 7일 경과 -> 기대 3회, 실제 4회
+        // 합산: 실제 6회 / 기대 6회 -> 100점
+        val plant1 = testPlant(id = 1L, plantedDate = 0L, intervalDays = 3)
+        val plant2 = testPlant(id = 2L, plantedDate = 0L, intervalDays = 3)
+        val calculator = WateringScoreCalculator(
+            FakeWateringRecordDaoByPlant(mapOf(1L to 2, 2L to 4)),
+        )
+
+        val score = calculator.calculateOverallScore(listOf(plant1, plant2), today = 7 * oneDayMillis)
+
+        assertEquals(100, score)
+    }
+
+    @Test
+    fun `전체 점수 - 합산해도 100점을 넘지 않음`() = runBlocking {
+        val plant1 = testPlant(id = 1L, plantedDate = 0L, intervalDays = 3)
+        val plant2 = testPlant(id = 2L, plantedDate = 0L, intervalDays = 3)
+        val calculator = WateringScoreCalculator(
+            FakeWateringRecordDaoByPlant(mapOf(1L to 10, 2L to 10)),
+        )
+
+        val score = calculator.calculateOverallScore(listOf(plant1, plant2), today = 7 * oneDayMillis)
+
+        assertEquals(100, score)
+    }
 }
 
 /**
@@ -105,6 +143,28 @@ private class FakeWateringRecordDao(private val wateringCount: Int) : WateringRe
     }
 
     override suspend fun getWateringCount(userPlantId: Long): Int = wateringCount
+
+    override fun observeRecordsForPlant(userPlantId: Long): Flow<List<WateringRecord>> {
+        throw NotImplementedError("이 테스트에서는 사용하지 않음")
+    }
+}
+
+/**
+ * 전체 점수(calculateOverallScore) 테스트 전용 가짜 DAO.
+ * 식물 ID별로 다른 실제 물 준 횟수를 반환한다.
+ */
+private class FakeWateringRecordDaoByPlant(
+    private val wateringCounts: Map<Long, Int>,
+) : WateringRecordDao {
+    override suspend fun insert(record: WateringRecord) {
+        throw NotImplementedError("이 테스트에서는 사용하지 않음")
+    }
+
+    override suspend fun getLastWateredDate(userPlantId: Long): Long? {
+        throw NotImplementedError("이 테스트에서는 사용하지 않음")
+    }
+
+    override suspend fun getWateringCount(userPlantId: Long): Int = wateringCounts[userPlantId] ?: 0
 
     override fun observeRecordsForPlant(userPlantId: Long): Flow<List<WateringRecord>> {
         throw NotImplementedError("이 테스트에서는 사용하지 않음")
