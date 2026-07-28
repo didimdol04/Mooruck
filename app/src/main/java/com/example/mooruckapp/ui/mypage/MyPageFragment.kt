@@ -159,14 +159,21 @@ class MyPageFragment : Fragment() {
             setSelection(currentNickname.length)
         }
 
-        AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext())
             .setTitle("닉네임 수정")
             .setView(editText)
-            .setPositiveButton("확인") { _, _ ->
+            // 리스너를 여기서 null로 둬야 기본 "누르면 무조건 닫힘" 동작을 막을 수 있음.
+            // 실제 클릭 처리는 아래 setOnShowListener에서 버튼에 직접 연결
+            .setPositiveButton("확인", null)
+            .setNegativeButton("취소", null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val newNickname = editText.text.toString().trim()
                 if (newNickname.isEmpty()) {
                     Toast.makeText(requireContext(), "닉네임을 입력해주세요", Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
+                    return@setOnClickListener
                 }
 
                 viewLifecycleOwner.lifecycleScope.launch {
@@ -174,8 +181,10 @@ class MyPageFragment : Fragment() {
                     currentNickname = newNickname
                     tvNickname.text = newNickname
                 }
+                dialog.dismiss()
             }
-            .setNegativeButton("취소", null)
-            .show()
+        }
+
+        dialog.show()
     }
 }
