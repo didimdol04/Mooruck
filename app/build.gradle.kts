@@ -1,3 +1,8 @@
+import java.util.Properties
+
+val localProperties = Properties()
+localProperties.load(rootProject.file("local.properties").inputStream())
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -15,7 +20,18 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField(
+            "String",
+            "NONGSARO_API_KEY",
+            "\"${localProperties["NONGSARO_API_KEY"]}\""
+        )
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
     }
 
     buildTypes {
@@ -57,6 +73,7 @@ dependencies {
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)
+    implementation("com.squareup.retrofit2:converter-scalars:2.11.0")
 
     // 로컬 DB (Room) - Plant, GrowthLog, WateringLog, UserProfile 저장용
     implementation(libs.room.runtime)
@@ -66,6 +83,10 @@ dependencies {
     // 비동기 처리 (코루틴)
     implementation(libs.kotlinx.coroutines.android)
 
-    //추가
+    // 물주기 알림 스케줄링 (매일 정해진 시간에 확인)
+    implementation(libs.androidx.work.runtime.ktx)
+
+    // Fragment에서 lifecycleScope 사용
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
 }

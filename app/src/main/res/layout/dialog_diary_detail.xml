@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#FFFFFF">
+
+    <!-- 날짜 -->
+    <TextView
+        android:id="@+id/tvDetailDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="#757575"
+        tools:text="2026년 7월 25일" />
+
+    <!-- 사진 -->
+    <ImageView
+        android:id="@+id/ivDetailPhoto"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="12dp"
+        android:scaleType="centerCrop"
+        android:background="#EEEEEE"
+        android:visibility="gone" />
+
+    <!-- 내용 -->
+    <TextView
+        android:id="@+id/tvDetailContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textSize="15sp"
+        android:textColor="#000000"
+        android:lineSpacingExtra="4dp"
+        tools:text="오늘 첫 토마토를 수확했어요!" />
+
+</LinearLayout>

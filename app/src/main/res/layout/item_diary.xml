@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="8dp"
+    android:gravity="center_vertical">
+
+    <!-- 왼쪽: 날짜 -->
+    <LinearLayout
+        android:layout_width="64dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tvDay"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_date_circle"
+            android:gravity="center"
+            android:text="25일"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/tvWeekday"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="수요일"
+            android:textSize="12sp"
+            android:textColor="#757575" />
+
+    </LinearLayout>
+
+    <!-- 오른쪽: 카드 -->
+    <LinearLayout
+        android:id="@+id/layoutCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_card"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true">
+
+        <!-- 사진 -->
+        <ImageView
+            android:id="@+id/ivPhoto"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:scaleType="centerCrop"
+            android:background="#CCCCCC" />
+
+        <!-- 글 내용 -->
+        <TextView
+            android:id="@+id/tvContent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="4dp"
+            android:text="오늘 첫 토마토를 수확했어요! 너무 쑥쑥 커서 신기한 토마토"
+            android:textSize="14sp"
+            android:textColor="#000000"
+            android:lineSpacingExtra="4dp"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <!-- 점 세 개 버튼 -->
+        <ImageButton
+            android:id="@+id/btnMore"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_more_vert"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:contentDescription="더보기" />
+
+    </LinearLayout>
+
+</LinearLayout>

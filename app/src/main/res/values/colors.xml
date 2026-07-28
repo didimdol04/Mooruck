@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <color name="main_green">#2E6B4A</color>
-    <color name="sub_green">#8FBC8F</color>
-
-    <color name="dark_gray">#757575</color>
-    <color name="light_gray">#CCCCCC</color>
-
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <!-- 회의 2차 Agenda #4 컬러 정리 -->
+    <color name="primary_green">#2E6B4A</color>
+    <color name="sub_green">#8FBC8F</color>
+    <color name="gray_dark">#757575</color>
+    <color name="gray_light">#CCCCCC</color>
 </resources>
