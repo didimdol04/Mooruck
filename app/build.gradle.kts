@@ -65,4 +65,7 @@ dependencies {
 
     // 비동기 처리 (코루틴)
     implementation(libs.kotlinx.coroutines.android)
+
+    //추가
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
 }
