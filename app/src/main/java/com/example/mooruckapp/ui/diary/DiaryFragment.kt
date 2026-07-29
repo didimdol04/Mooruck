@@ -129,10 +129,12 @@ class DiaryFragment : Fragment() {
 
             plantFilterAdapter.updateList(plants)
 
-            // 첫 번째 식물 자동 선택
-            val firstPlant = plants[0]
-            selectedPlantId = firstPlant.id
-            showPlantProfile(firstPlant)
+            // 상세에서 넘어온 plantId가 있으면 그 식물, 없으면 첫 번째
+            val passedPlantId = arguments?.getLong("plantId", -1L) ?: -1L
+            val targetPlant = plants.find { it.id == passedPlantId } ?: plants[0]
+
+            selectedPlantId = targetPlant.id
+            showPlantProfile(targetPlant)
             loadDiaries()
         }
     }
