@@ -21,6 +21,7 @@ import com.example.mooruckapp.data.local.dao.UserPlantDao
 import com.example.mooruckapp.data.local.dao.WateringRecordDao
 import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.databinding.FragmentPlantDetailBinding
+import com.example.mooruckapp.ui.diary.DiaryFragment
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -102,6 +103,17 @@ class PlantDetailFragment : Fragment() {
 
         binding.buttonMore.setOnClickListener {
             showMoreMenu()
+        }
+
+        binding.buttonGrowthDiary.setOnClickListener {
+
+            parentFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragmentContainer,
+                    DiaryFragment(),
+                )
+                .addToBackStack(null)
+                .commit()
         }
     }
 
