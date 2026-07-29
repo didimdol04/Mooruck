@@ -406,6 +406,7 @@ class PlantRegisterFragment : Fragment(R.layout.fragment_plant_register) {
         )
     }
 
+    // TODO: 식물 등록 후 이전 페이지로 (식물 메인페이지)
     private fun saveUserPlant() {
         val userPlant = createUserPlant()
 
