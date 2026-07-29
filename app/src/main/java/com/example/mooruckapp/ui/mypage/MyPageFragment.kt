@@ -111,7 +111,7 @@ class MyPageFragment : Fragment() {
         // viewLifecycleOwner 기준으로 실행: 화면이 사라지면(onDestroyView) 코루틴도 같이 정리되어
         // 이미 사라진 뷰를 건드리다 죽는 걸 방지
         viewLifecycleOwner.lifecycleScope.launch {
-            db.userDao().insertIfNotExists(User(nickname = "식집사"))
+//            db.userDao().insertIfNotExists(User(nickname = "식집사")) 홈 화면으로 이동
 
             val user = db.userDao().getUser() ?: return@launch
             currentNickname = user.nickname

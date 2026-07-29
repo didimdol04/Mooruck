@@ -12,6 +12,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
+import com.example.mooruckapp.data.local.entity.GrowthDiary
+import com.example.mooruckapp.data.local.entity.User
 import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.data.local.entity.WateringRecord
 //import com.example.mooruckapp.databinding.ActivityHomeBinding
@@ -26,6 +28,7 @@ import java.util.concurrent.TimeUnit
 //추가2
 import com.example.mooruckapp.ui.plant.PlantDetailFragment
 import com.example.mooruckapp.ui.plant.PlantRegisterFragment
+import kotlinx.coroutines.flow.first
 
 class HomeFragment : Fragment() {
 
@@ -37,6 +40,24 @@ class HomeFragment : Fragment() {
 
     private val database by lazy {
         AppDatabase.getInstance(requireContext().applicationContext)
+    }
+
+    private val userPlantDao by lazy {
+        AppDatabase
+            .getInstance(requireContext())
+            .userPlantDao()
+    }
+
+    private val wateringRecordDao by lazy {
+        AppDatabase
+            .getInstance(requireContext())
+            .wateringRecordDao()
+    }
+
+    private val growthDiaryDao by lazy {
+        AppDatabase
+            .getInstance(requireContext())
+            .growthDiaryDao()
     }
 
     /*
@@ -73,9 +94,121 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupPlantList()
+
+        initializeSampleData()
+
         observePlants()
         setupSearch()
         setupButtons()
+    }
+
+    private fun initializeSampleData() {
+        val db = AppDatabase.getInstance(requireContext())
+
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            db.userDao().insertIfNotExists(User(nickname = "식집사"))
+
+
+            // 식물이 하나도 없을 때만 샘플 데이터 생성
+            if (db.userPlantDao().observeAll().first().isEmpty()) {
+                // drawable 리소스 URI
+                val moneyTreeImageUri =
+                    "android.resource://${requireContext().packageName}/${R.drawable.plant_g}"
+
+                val monsteraImageUri =
+                    "android.resource://${requireContext().packageName}/${R.drawable.plant_m}"
+
+                // 날짜 생성용
+                val calendar = Calendar.getInstance()
+
+                // ----------------------------
+                // 금전수
+                // ----------------------------
+
+                // 심은 날짜 : 2026-07-03
+                calendar.set(2026, Calendar.JULY, 3, 0, 0, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val moneyTreePlantedDate = calendar.timeInMillis
+
+                // 마지막 물 준 날짜 : 2026-07-24
+                calendar.set(2026, Calendar.JULY, 24, 0, 0, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val moneyTreeWateredDate = calendar.timeInMillis
+
+                val moneyTreeId = userPlantDao.insert(
+                    UserPlant(
+                        plantName = "금전수",
+                        nickname = "금전이",
+                        profileImageUri = moneyTreeImageUri,
+                        light = "반음지",
+                        humidity = "40~70%",
+                        temperature = "18~26℃",
+                        wateringIntervalDays = 14,
+                        plantedDate = moneyTreePlantedDate,
+                    )
+                )
+
+                wateringRecordDao.insert(
+                    WateringRecord(
+                        userPlantId = moneyTreeId,
+                        wateredDate = moneyTreeWateredDate,
+                    )
+                )
+
+                growthDiaryDao.insert(
+                    GrowthDiary(
+                        userPlantId = moneyTreeId,
+                        diaryDate = moneyTreePlantedDate,
+                        content = "식물과 함께한 첫날이에요.",
+                        imageUrl = moneyTreeImageUri,
+                    )
+                )
+
+                // ----------------------------
+                // 몬스테라
+                // ----------------------------
+
+                // 심은 날짜 : 2026-07-10
+                calendar.set(2026, Calendar.JULY, 10, 0, 0, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val monsteraPlantedDate = calendar.timeInMillis
+
+                // 마지막 물 준 날짜 : 2026-07-22
+                calendar.set(2026, Calendar.JULY, 22, 0, 0, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val monsteraWateredDate = calendar.timeInMillis
+
+                val monsteraId = userPlantDao.insert(
+                    UserPlant(
+                        plantName = "몬스테라",
+                        nickname = "몬몬이",
+                        profileImageUri = monsteraImageUri,
+                        light = "밝은 간접광",
+                        humidity = "60~80%",
+                        temperature = "20~30℃",
+                        wateringIntervalDays = 7,
+                        plantedDate = monsteraPlantedDate,
+                    )
+                )
+
+                wateringRecordDao.insert(
+                    WateringRecord(
+                        userPlantId = monsteraId,
+                        wateredDate = monsteraWateredDate,
+                    )
+                )
+
+                growthDiaryDao.insert(
+                    GrowthDiary(
+                        userPlantId = monsteraId,
+                        diaryDate = monsteraPlantedDate,
+                        content = "식물과 함께한 첫날이에요.",
+                        imageUrl = monsteraImageUri,
+                    )
+                )
+            }
+        }
     }
 
     private fun setupPlantList() {
