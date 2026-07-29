@@ -21,7 +21,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
-import com.example.mooruckapp.data.local.entity.User
 import com.example.mooruckapp.domain.WateringScoreCalculator
 import com.example.mooruckapp.notification.WateringNotificationScheduler
 import com.example.mooruckapp.ui.common.WaterDropScoreView
