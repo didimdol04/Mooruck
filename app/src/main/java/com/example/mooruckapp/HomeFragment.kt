@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.mooruckapp.data.local.AppDatabase
 import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.data.local.entity.WateringRecord
-import com.example.mooruckapp.databinding.ActivityHomeBinding
+//import com.example.mooruckapp.databinding.ActivityHomeBinding
 //추가
 import com.example.mooruckapp.databinding.FragmentHomeBinding
 import com.google.android.material.snackbar.Snackbar
