@@ -17,6 +17,8 @@ import com.example.mooruckapp.data.local.entity.WateringRecord
 //import com.example.mooruckapp.databinding.ActivityHomeBinding
 //추가
 import com.example.mooruckapp.databinding.FragmentHomeBinding
+import com.example.mooruckapp.ui.diary.DiaryFragment
+import com.example.mooruckapp.ui.mypage.MyPageFragment
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -317,11 +319,23 @@ class HomeFragment : Fragment() {
         }
 
         binding.buttonDiary.setOnClickListener {
-            // TODO: 성장 일지 Fragment 연결
+            parentFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragmentContainer,
+                    DiaryFragment(),
+                )
+                .addToBackStack(null)
+                .commit()
         }
 
         binding.buttonMyPage.setOnClickListener {
-            // TODO: 마이페이지 Fragment 연결
+            parentFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragmentContainer,
+                    MyPageFragment(),
+                )
+                .addToBackStack(null)
+                .commit()
         }
     }
 
