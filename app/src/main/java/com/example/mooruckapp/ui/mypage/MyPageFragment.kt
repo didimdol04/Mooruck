@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
@@ -34,6 +35,7 @@ import kotlinx.coroutines.launch
  */
 class MyPageFragment : Fragment() {
 
+    private lateinit var buttonBack: ImageButton
     private lateinit var tvNickname: TextView
     private lateinit var btnEditNickname: TextView
     private lateinit var tvPlantCount: TextView
@@ -79,6 +81,7 @@ class MyPageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        buttonBack = view.findViewById(R.id.buttonBack)
         tvNickname = view.findViewById(R.id.tvNickname)
         btnEditNickname = view.findViewById(R.id.btnEditNickname)
         tvPlantCount = view.findViewById(R.id.tvPlantCount)
@@ -91,6 +94,8 @@ class MyPageFragment : Fragment() {
         // 꺼져 있어 BuildConfig.VERSION_NAME은 사용하지 않음.
         tvAppVersion.text = "v1.0.0"
         btnEditNickname.setOnClickListener { showEditNicknameDialog() }
+        // 뒤로 가기 (메인 화면)
+        buttonBack.setOnClickListener { parentFragmentManager.popBackStack() }
 
         // 매일 물주기 확인 작업 등록 (이미 등록돼 있으면 동작 X)
         WateringNotificationScheduler.schedule(requireContext())
