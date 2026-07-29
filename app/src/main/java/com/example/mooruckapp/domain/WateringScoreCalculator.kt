@@ -2,81 +2,172 @@ package com.example.mooruckapp.domain
 
 import com.example.mooruckapp.data.local.dao.WateringRecordDao
 import com.example.mooruckapp.data.local.entity.UserPlant
+import java.time.Instant
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 /**
- * 물주기 점수 계산 로직.
+ * 물주기 점수 계산기.
  *
- * 점수 = (실제 물 준 횟수 / 기대 물주기 횟수) * 100, 0~100점 사이로 제한
- * 기대 물주기 횟수: 식물을 심은 날부터 오늘까지 경과일과 물주기 주기(wateringIntervalDays)를
- * 기준으로 계산하며, 심은 날 자체를 1회차로 포함
+ * 계산 시작일:
+ * 식물 등록 시 입력받아 최초 WateringRecord로 저장한 물주기 날짜
  *
- * ex) 물주기 주기 3일, 심은 지 7일 경과 → 기대 횟수 = 7/3 + 1 = 3회
- *     그 중 실제로 2번만 물을 줬다면 → 점수 = 2/3 * 100 ≈ 66점
+ * 기대 횟수:
+ * 최초 물주기 날짜부터 오늘까지 주기대로 물을 줬어야 하는 총횟수
+ *
+ * 실제 횟수:
+ * 해당 식물에 저장된 전체 물주기 기록 수
+ *
+ * 점수:
+ * 실제 횟수 / 기대 횟수 * 100
  */
 class WateringScoreCalculator(
     private val wateringRecordDao: WateringRecordDao,
 ) {
 
-    /**
-     * 특정 식물(userPlant)의 현재 물주기 점수 계산
-     * @param today 기준 시각(epoch millis).
-     */
-    suspend fun calculateScore(userPlant: UserPlant, today: Long = System.currentTimeMillis()): Int {
+    suspend fun calculateScore(
+        userPlant: UserPlant,
+        today: Long = System.currentTimeMillis(),
+    ): Int {
+        // 등록 시 저장된 최초 물주기 기록 날짜를 가져온다.
+        val firstWateredDate =
+            wateringRecordDao.getFirstWateredDate(userPlant.id)
+                ?: return MAX_SCORE
+
+        // 최초 물주기 날짜를 기준으로 기대 횟수를 계산한다.
         val expectedCount = calculateExpectedWateringCount(
-            plantedDate = userPlant.plantedDate,
+            firstWateredDate = firstWateredDate,
             intervalDays = userPlant.wateringIntervalDays,
             today = today,
         )
 
-        // 심은 지 얼마 안 되어 아직 기대 횟수가 0인 경우 만점 처리
-        if (expectedCount <= 0) return MAX_SCORE
+        // 계산할 기대 횟수가 없다면 만점으로 처리한다.
+        if (expectedCount <= 0) {
+            return MAX_SCORE
+        }
 
-        val actualCount = wateringRecordDao.getWateringCount(userPlant.id)
-        val rawScore = (actualCount.toDouble() / expectedCount.toDouble()) * MAX_SCORE
+        // 최초 기록을 포함해 실제 저장된 물주기 기록 수를 구한다.
+        val actualCount =
+            wateringRecordDao.getWateringCount(userPlant.id)
 
-        return rawScore.toInt().coerceIn(MIN_SCORE, MAX_SCORE)
+        // 실제 횟수를 기대 횟수와 비교해 점수를 계산한다.
+        val rawScore =
+            (actualCount.toDouble() / expectedCount.toDouble()) * MAX_SCORE
+
+        // 점수가 0점 미만이나 100점 초과가 되지 않도록 제한한다.
+        return rawScore.toInt()
+            .coerceIn(MIN_SCORE, MAX_SCORE)
     }
 
     /**
-     * 마이페이지에 표시할 "전체" 물주기 점수 계산. 사용자가 등록한 식물 전체를 합산해서
-     * (전체 실제 물 준 횟수 / 전체 기대 물주기 횟수) * 100 으로 계산
-     * 식물이 하나도 없거나 아직 기대 횟수가 없으면 만점 처리
+     * 사용자가 등록한 모든 식물의 전체 물주기 점수를 계산한다.
+     *
+     * 전체 실제 횟수 / 전체 기대 횟수 * 100
      */
     suspend fun calculateOverallScore(
         userPlants: List<UserPlant>,
         today: Long = System.currentTimeMillis(),
     ): Int {
-        if (userPlants.isEmpty()) return MAX_SCORE
+        // 등록된 식물이 없다면 만점으로 처리한다.
+        if (userPlants.isEmpty()) {
+            return MAX_SCORE
+        }
 
+        // 모든 식물의 기대 물주기 횟수를 합산한다.
         var totalExpected = 0
+
+        // 모든 식물의 실제 물주기 횟수를 합산한다.
         var totalActual = 0
 
         for (plant in userPlants) {
+            // 해당 식물의 최초 물주기 날짜를 가져온다.
+            val firstWateredDate =
+                wateringRecordDao.getFirstWateredDate(plant.id)
+                    ?: continue // 최초 기록이 없는 식물은 계산에서 제외한다.
+
+            // 해당 식물의 기대 물주기 횟수를 계산한다.
             val expected = calculateExpectedWateringCount(
-                plantedDate = plant.plantedDate,
+                firstWateredDate = firstWateredDate,
                 intervalDays = plant.wateringIntervalDays,
                 today = today,
             )
-            if (expected <= 0) continue
 
+            // 올바른 기대 횟수가 없으면 합산하지 않는다.
+            if (expected <= 0) {
+                continue
+            }
+
+            // 해당 식물의 기대 횟수를 전체 기대 횟수에 더한다.
             totalExpected += expected
+
+            // 해당 식물의 실제 기록 수를 전체 실제 횟수에 더한다.
             totalActual += wateringRecordDao.getWateringCount(plant.id)
         }
 
-        if (totalExpected <= 0) return MAX_SCORE
+        // 계산 대상이 없다면 만점으로 처리한다.
+        if (totalExpected <= 0) {
+            return MAX_SCORE
+        }
 
-        val rawScore = (totalActual.toDouble() / totalExpected.toDouble()) * MAX_SCORE
-        return rawScore.toInt().coerceIn(MIN_SCORE, MAX_SCORE)
+        // 전체 실제 횟수를 전체 기대 횟수로 나누어 점수를 계산한다.
+        val rawScore =
+            (totalActual.toDouble() / totalExpected.toDouble()) * MAX_SCORE
+
+        // 최종 결과를 0~100점 사이로 제한한다.
+        return rawScore.toInt()
+            .coerceIn(MIN_SCORE, MAX_SCORE)
     }
 
-    /** 심은 날부터 today까지, 물주기 주기 기준으로 몇 번 물을 줬어야 하는지 계산 */
-    internal fun calculateExpectedWateringCount(plantedDate: Long, intervalDays: Int, today: Long): Int {
-        if (intervalDays <= 0) return 0
+    /**
+     * 최초 물주기 날짜부터 오늘까지
+     * 주기대로 몇 번 물을 줬어야 하는지 계산한다.
+     */
+    internal fun calculateExpectedWateringCount(
+        firstWateredDate: Long, // 등록할 때 입력한 최초 물주기 날짜
+        intervalDays: Int,      // 며칠마다 물을 주는지
+        today: Long,            // 오늘 시각
+    ): Int {
+        // 물주기 주기가 잘못 설정된 경우 계산하지 않는다.
+        if (intervalDays <= 0) {
+            return 0
+        }
 
-        val elapsedDays = TimeUnit.MILLISECONDS.toDays(today - plantedDate)
-        if (elapsedDays < 0) return 0
+        // 최초 물주기 날짜를 자정으로 맞춘다.
+        val firstWateredDay = Calendar.getInstance().apply {
+            timeInMillis = firstWateredDate
 
+            // 시간 차이가 아니라 날짜 차이를 계산하기 위해
+            // 시, 분, 초, 밀리초를 모두 0으로 만든다.
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        // 오늘 날짜도 자정으로 맞춘다.
+        val todayDay = Calendar.getInstance().apply {
+            timeInMillis = today
+
+            // 오늘의 시간 부분을 제거한다.
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        // 최초 물주기 날짜부터 오늘까지 지난 날짜 수를 구한다.
+        val elapsedDays = TimeUnit.MILLISECONDS.toDays(
+            todayDay - firstWateredDay,
+        )
+
+        // 최초 물주기 날짜가 미래라면 계산하지 않는다.
+        if (elapsedDays < 0) {
+            return 0
+        }
+
+        // 최초 물주기 기록 자체를 1회로 포함한다.
         return (elapsedDays / intervalDays).toInt() + 1
     }
 
