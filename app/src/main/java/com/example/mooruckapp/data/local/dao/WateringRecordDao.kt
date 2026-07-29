@@ -21,6 +21,23 @@ interface WateringRecordDao {
     @Query("SELECT MAX(watered_date) FROM watering_record WHERE user_plant_id = :userPlantId")
     suspend fun getLastWateredDate(userPlantId: Long): Long?
 
+    /**
+     * 해당 식물의 최초 물주기 날짜를 가져온다.
+     *
+     * 식물 등록 시 입력한 '마지막 물 준 날짜'가
+     * 첫 번째 WateringRecord로 저장되므로 MIN을 사용한다.
+     */
+    @Query(
+        """
+        SELECT MIN(watered_date)
+        FROM watering_record
+        WHERE user_plant_id = :userPlantId
+        """
+    )
+    suspend fun getFirstWateredDate(
+        userPlantId: Long,
+        ): Long?
+
     /** 마이페이지 물주기 점수 계산의 분자(실제 물 준 횟수) */
     @Query("SELECT COUNT(*) FROM watering_record WHERE user_plant_id = :userPlantId")
     suspend fun getWateringCount(userPlantId: Long): Int
