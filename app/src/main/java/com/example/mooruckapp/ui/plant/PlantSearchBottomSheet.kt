@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mooruckapp.databinding.BottomSheetPlantSearchBinding
 import com.example.mooruckapp.network.dto.PlantItem
 import com.example.mooruckapp.repository.PlantRepository
-import com.example.mooruckapp.ui.plant.adapter.PlantSearchAdapter
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job

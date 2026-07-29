@@ -1,4 +1,4 @@
-package com.example.mooruckapp.ui.plant.adapter
+package com.example.mooruckapp.ui.plant
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
