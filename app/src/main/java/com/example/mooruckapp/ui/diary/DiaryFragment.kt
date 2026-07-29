@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.example.mooruckapp.data.local.entity.UserPlant
+import com.example.mooruckapp.ui.home.HomeFragment
 
 class DiaryFragment : Fragment() {
 
@@ -59,6 +60,18 @@ class DiaryFragment : Fragment() {
 
         rvDiary.layoutManager = LinearLayoutManager(requireContext())
         rvDiary.adapter = adapter
+
+        // 홈 화면으로 돌아가기 버튼
+        val buttonBack = view.findViewById<View>(R.id.buttonBack)
+
+        buttonBack.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragmentContainer,
+                    HomeFragment(),
+                )
+                .commit()
+        }
 
         // 상단 식물 필터 설정
         val rvPlantFilter = view.findViewById<RecyclerView>(R.id.rvPlantFilter)

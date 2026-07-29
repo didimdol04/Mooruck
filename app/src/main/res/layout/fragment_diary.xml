@@ -7,18 +7,33 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
+    <!-- 홈 화면으로 돌아가는 뒤로가기 버튼 -->
+    <ImageButton
+        android:id="@+id/buttonBack"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="뒤로가기"
+        android:padding="8dp"
+        android:src="@drawable/ic_arrow_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- 화면 제목 -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginStart="8dp"
         android:text="성장 일지"
+        android:textColor="#000000"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="#000000"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@id/buttonBack"
+        app:layout_constraintStart_toEndOf="@id/buttonBack"
+        app:layout_constraintTop_toTopOf="@id/buttonBack" />
 
     <!-- 상단 식물 필터 (가로 스크롤) -->
     <androidx.recyclerview.widget.RecyclerView
