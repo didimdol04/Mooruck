@@ -30,8 +30,8 @@ class DiaryWriteFragment : Fragment() {
     // 선택된 날짜 (기본값: 오늘)
     private var selectedDate: Long = System.currentTimeMillis()
 
-    // 임시로 식물 ID 고정 (나중에 실제 선택된 식물로 교체)
-    private val plantId: Long = 1
+    // 식물 ID
+    private var plantId: Long = -1L
 
     // 수정할 일지 (없으면 새 글 작성)
     private var editingDiary: GrowthDiary? = null
@@ -64,6 +64,9 @@ class DiaryWriteFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // 이전 화면에서 전달받은 실제 식물 ID
+        plantId = arguments?.getLong("plantId", -1L) ?: -1L
 
         tvDate = view.findViewById(R.id.tvDate)
         etContent = view.findViewById(R.id.etContent)
@@ -144,6 +147,15 @@ class DiaryWriteFragment : Fragment() {
 
         if (content.isEmpty()) {
             Toast.makeText(requireContext(), "내용을 입력해주세요", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (plantId == -1L && editingDiary == null) {
+            Toast.makeText(
+                requireContext(),
+                "식물 정보를 불러올 수 없습니다",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 

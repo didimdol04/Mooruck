@@ -80,8 +80,15 @@ class DiaryFragment : Fragment() {
         // 글쓰기 버튼 → 작성 화면 이동
         val btnWrite = view.findViewById<View>(R.id.btnWrite)
         btnWrite.setOnClickListener {
+
+            val fragment = DiaryWriteFragment().apply {
+                arguments = Bundle().apply {
+                    putLong("plantId", selectedPlantId)
+                }
+            }
+
             parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, DiaryWriteFragment())
+                .replace(R.id.fragmentContainer, fragment)
                 .addToBackStack(null)
                 .commit()
         }
@@ -111,7 +118,10 @@ class DiaryFragment : Fragment() {
     // 화면에 다시 돌아왔을 때 목록 새로고침
     override fun onResume() {
         super.onResume()
-        loadDiaries()
+
+        if (selectedPlantId != -1L) {
+            loadDiaries()
+        }
     }
 
     // 등록된 식물 불러와서 필터에 표시
@@ -211,6 +221,7 @@ class DiaryFragment : Fragment() {
         val fragment = DiaryWriteFragment()
         fragment.arguments = Bundle().apply {
             putLong("diaryId", diary.id)
+            putLong("plantId", diary.userPlantId)
         }
         parentFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
