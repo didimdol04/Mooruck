@@ -20,12 +20,16 @@ import com.example.mooruckapp.data.local.entity.GrowthDiary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.mooruckapp.data.local.entity.UserPlant
 
 class DiaryFragment : Fragment() {
 
     private lateinit var rvDiary: RecyclerView
     private lateinit var tvEmpty: TextView
     private lateinit var adapter: DiaryAdapter
+
+    private lateinit var plantFilterAdapter: PlantFilterAdapter
+    private var selectedPlantId: Long = -1
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,17 +56,44 @@ class DiaryFragment : Fragment() {
                 showPopupMenu(diary, anchor)
             },
         )
+
         rvDiary.layoutManager = LinearLayoutManager(requireContext())
         rvDiary.adapter = adapter
 
-        loadDiaries()
+        // 상단 식물 필터 설정
+        val rvPlantFilter = view.findViewById<RecyclerView>(R.id.rvPlantFilter)
+        plantFilterAdapter = PlantFilterAdapter(
+            plants = emptyList(),
+            onPlantClick = { plant ->
+                selectedPlantId = plant.id
+                showPlantProfile(plant)
+                loadDiaries()
+            }
+        )
+        rvPlantFilter.layoutManager = LinearLayoutManager(
+            requireContext(),
+            LinearLayoutManager.HORIZONTAL,
+            false
+        )
+        rvPlantFilter.adapter = plantFilterAdapter
+
+        // 글쓰기 버튼 → 작성 화면 이동
+        val btnWrite = view.findViewById<View>(R.id.btnWrite)
+        btnWrite.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, DiaryWriteFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
+        loadPlants()
     }
 
     // DB에서 일지를 불러와 목록에 표시
     private fun loadDiaries() {
         lifecycleScope.launch {
             val dao = AppDatabase.getInstance(requireContext()).growthDiaryDao()
-            val list = dao.getAll()
+            val list = dao.getByPlant(selectedPlantId)
 
             adapter.updateList(list)
 
@@ -82,6 +113,52 @@ class DiaryFragment : Fragment() {
         super.onResume()
         loadDiaries()
     }
+
+    // 등록된 식물 불러와서 필터에 표시
+    private fun loadPlants() {
+        lifecycleScope.launch {
+            val dao = AppDatabase.getInstance(requireContext()).userPlantDao()
+            val plants = dao.getAllOnce()
+
+            if (plants.isEmpty()) {
+                // 식물이 없으면 안내
+                tvEmpty.visibility = View.VISIBLE
+                rvDiary.visibility = View.GONE
+                return@launch
+            }
+
+            plantFilterAdapter.updateList(plants)
+
+            // 첫 번째 식물 자동 선택
+            val firstPlant = plants[0]
+            selectedPlantId = firstPlant.id
+            showPlantProfile(firstPlant)
+            loadDiaries()
+        }
+    }
+
+    // 선택된 식물의 프로필 표시
+    private fun showPlantProfile(plant: UserPlant) {
+        val ivProfile = requireView().findViewById<ImageView>(R.id.ivPlantProfile)
+        val tvNickname = requireView().findViewById<TextView>(R.id.tvPlantNickname)
+        val tvName = requireView().findViewById<TextView>(R.id.tvPlantName)
+        val tvDays = requireView().findViewById<TextView>(R.id.tvTogetherDays)
+
+        tvNickname.text = plant.nickname ?: plant.plantName
+        tvName.text = plant.plantName
+
+        // 함께한 날짜 계산 (심은 날 ~ 오늘)
+        val days = ((System.currentTimeMillis() - plant.plantedDate) / (1000 * 60 * 60 * 24)) + 1
+        tvDays.text = "${days}일째 함께하는 중"
+
+        // 대표 사진
+        if (!plant.profileImageUri.isNullOrEmpty()) {
+            ivProfile.setImageURI(android.net.Uri.parse(plant.profileImageUri))
+        } else {
+            ivProfile.setImageURI(null)
+        }
+    }
+
     // 점 세 개 누르면 수정/삭제 메뉴 표시
     private fun showPopupMenu(diary: GrowthDiary, anchor: View) {
         val popup = PopupMenu(requireContext(), anchor)
@@ -117,7 +194,6 @@ class DiaryFragment : Fragment() {
     }
 
     // DB에서 일지 삭제
-    // DB에서 일지 삭제
     private fun deleteDiary(diary: GrowthDiary) {
         lifecycleScope.launch {
             val dao = AppDatabase.getInstance(requireContext()).growthDiaryDao()
@@ -134,11 +210,10 @@ class DiaryFragment : Fragment() {
         fragment.arguments = Bundle().apply {
             putLong("diaryId", diary.id)
         }
-        // 컨테이너 ID는 MainActivity 구조 확정 후 연결
-        // parentFragmentManager.beginTransaction()
-        //     .replace(컨테이너ID, fragment)
-        //     .addToBackStack(null)
-        //     .commit()
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     // 일지 전체 내용 팝업
