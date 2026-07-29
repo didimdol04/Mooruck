@@ -1,7 +1,9 @@
 package com.example.mooruckapp.notification
 
 import android.Manifest
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
@@ -9,6 +11,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.mooruckapp.MainActivity
 import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
 import com.example.mooruckapp.domain.WateringNeedChecker
@@ -52,14 +55,24 @@ class WateringNotificationWorker(
             if (!hasPermission) return
         }
 
-        // TODO: 알림 탭 시 메인 화면(main-page)으로 이동하도록 setContentIntent() 연결 예정
-        // 화면 연결되면 PendingIntent 추가하기
+        // 알림 탭 시 앱(메인 화면)을 열도록 연결. 위젯 탭 처리와 동일한 방식(FLAG_IMMUTABLE)
+        val contentIntent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            applicationContext,
+            0,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
         val notification = NotificationCompat.Builder(applicationContext, WateringNotificationScheduler.CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("물 줄 시간이에요!")
             .setContentText("오늘 물 줄 식물이 ${plantCount}개 있어요")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setContentIntent(contentPendingIntent)
             .build()
 
         NotificationManagerCompat.from(applicationContext).notify(NOTIFICATION_ID, notification)

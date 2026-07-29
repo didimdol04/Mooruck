@@ -16,8 +16,7 @@ import kotlinx.coroutines.launch
 
 /**
  * 홈 화면 위젯: 오늘 물을 줘야 하는 식물 리스트 표시
- * 보여주기 전용 - 위젯을 탭하면 앱 실행
- * 이후 메인 화면으로 연결 예정
+ * 보여주기 전용 - 위젯을 탭하면 앱(MainActivity)이 실행됨
  */
 class WateringWidgetProvider : AppWidgetProvider() {
 
