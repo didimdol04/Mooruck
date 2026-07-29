@@ -77,6 +77,15 @@ class DiaryFragment : Fragment() {
         )
         rvPlantFilter.adapter = plantFilterAdapter
 
+        // 글쓰기 버튼 → 작성 화면 이동
+        val btnWrite = view.findViewById<View>(R.id.btnWrite)
+        btnWrite.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, DiaryWriteFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
         loadPlants()
     }
 
@@ -201,11 +210,10 @@ class DiaryFragment : Fragment() {
         fragment.arguments = Bundle().apply {
             putLong("diaryId", diary.id)
         }
-        // 컨테이너 ID는 MainActivity 구조 확정 후 연결
-        // parentFragmentManager.beginTransaction()
-        //     .replace(컨테이너ID, fragment)
-        //     .addToBackStack(null)
-        //     .commit()
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     // 일지 전체 내용 팝업
