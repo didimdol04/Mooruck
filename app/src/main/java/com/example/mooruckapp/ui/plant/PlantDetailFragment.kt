@@ -106,11 +106,16 @@ class PlantDetailFragment : Fragment() {
         }
 
         binding.buttonGrowthDiary.setOnClickListener {
+            val fragment = DiaryFragment()
+
+            fragment.arguments = Bundle().apply {
+                putLong("plantId", plantId)
+            }
 
             parentFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragmentContainer,
-                    DiaryFragment(),
+                    fragment,
                 )
                 .addToBackStack(null)
                 .commit()
