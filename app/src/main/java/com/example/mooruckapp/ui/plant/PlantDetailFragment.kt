@@ -198,13 +198,7 @@ class PlantDetailFragment : Fragment() {
             ).show()
 
 
-            // TODO: PlantListFragment 구현 후 popBackStack()으로 변경한다.
-            parentFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragmentContainer,
-                    PlantRegisterFragment(),
-                    )
-                .commit()
+            parentFragmentManager.popBackStack()
         }
     }
 
