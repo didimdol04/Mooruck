@@ -67,7 +67,7 @@
 ## 🔗 Project Links
 
 - 📄 **Notion** : [https://swu-guru2-mooruck-notion](https://app.notion.com/p/SWU-GURU2-20-3a3911ad8de080e8b92def966c782160?source=copy_link)
-- 🎥 **Demo Video** : https://your-video-link *(선택)*
+- 🎥 **Demo Video** : [https://swu-guru2-mooruck-video](https://youtu.be/hedYAR9sIzo)
 
 ---
 
