@@ -9,7 +9,7 @@
     android:background="@color/white"
     android:paddingStart="20dp"
     android:paddingEnd="20dp"
-    tools:context=".HomeFragment">
+    tools:context=".ui.home.HomeFragment">
 
     <TextView
         android:id="@+id/textHomeTitle"

@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.mooruckapp.data.local.dao.GrowthDiaryDao
 import com.example.mooruckapp.data.local.dao.UserDao
 import com.example.mooruckapp.data.local.dao.UserPlantDao
 import com.example.mooruckapp.data.local.dao.WateringRecordDao
+import com.example.mooruckapp.data.local.entity.GrowthDiary
 import com.example.mooruckapp.data.local.entity.User
 import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.data.local.entity.WateringRecord

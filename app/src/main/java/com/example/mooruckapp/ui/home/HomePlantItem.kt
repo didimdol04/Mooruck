@@ -1,4 +1,4 @@
-package com.example.mooruckapp
+package com.example.mooruckapp.ui.home
 
 data class HomePlantItem(
     val id: Long,

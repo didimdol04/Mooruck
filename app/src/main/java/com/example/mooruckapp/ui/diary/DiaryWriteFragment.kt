@@ -14,7 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
-import com.example.mooruckapp.data.local.GrowthDiary
+import com.example.mooruckapp.data.local.entity.GrowthDiary
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar

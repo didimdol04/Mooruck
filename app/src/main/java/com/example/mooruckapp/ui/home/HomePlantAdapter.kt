@@ -1,10 +1,11 @@
-package com.example.mooruckapp
+package com.example.mooruckapp.ui.home
 
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.mooruckapp.R
 import com.example.mooruckapp.databinding.ItemHomePlantBinding
 
 class HomePlantAdapter(

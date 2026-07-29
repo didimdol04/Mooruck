@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.example.mooruckapp.data.local.GrowthDiary
+import com.example.mooruckapp.data.local.entity.GrowthDiary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

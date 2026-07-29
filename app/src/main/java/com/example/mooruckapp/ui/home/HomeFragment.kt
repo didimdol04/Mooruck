@@ -1,4 +1,4 @@
-package com.example.mooruckapp
+package com.example.mooruckapp.ui.home
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,6 +10,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.mooruckapp.R
 import com.example.mooruckapp.data.local.AppDatabase
 import com.example.mooruckapp.data.local.entity.UserPlant
 import com.example.mooruckapp.data.local.entity.WateringRecord
